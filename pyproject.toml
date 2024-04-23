@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "nova_python_sdk"
+name = "nova-python-sdk"
 version = "0.0.1"
 description = "This is a template repository for Python projects that use Poetry for their dependency management."
-authors = ["Solidi Labs <flakonema2000@gmail.com>"]
-repository = "https://github.com/lakonema2000/nova-python-sdk"
+authors = ["Solidi Labs <lakonema2000@gmail.com>"]
+repository = "https://github.com/Solidi-Labs/nova-python-sdk"
 documentation = "https://lakonema2000.github.io/nova-python-sdk/"
 readme = "README.md"
 packages = [

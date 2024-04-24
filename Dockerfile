@@ -18,4 +18,4 @@ RUN poetry install --no-interaction --no-ansi --no-root --no-dev
 # Copy Python code to the Docker image
 COPY nova_python_sdk /code/nova_python_sdk/
 
-CMD [ "python", "nova_python_sdk/foo.py"]
+CMD [ "python", "nova_sdk/foo.py"]

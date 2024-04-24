@@ -8,8 +8,8 @@ repo_name: Solidi-Labs/nova-python-sdk
 copyright: Maintained by <a href="https://github.com/Solidi-Labs">Solidi Labs</a>.
 
 nav:
-  - Home: index.md
-  - Modules: modules.md
+  - Intro: index.md
+  - Python SDK: python_sdk.md
 plugins:
   - search
   - mkdocstrings:

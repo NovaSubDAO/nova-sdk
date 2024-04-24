@@ -7,6 +7,29 @@ config, w3 = load_config_and_web3()
 
 
 def deposit(assets_: int, receiver_: str) -> None:
+    """
+    Deposits DAI to sDAI contract.
+
+    This function constructs and sends a transaction for depositing `assets` DAI into sDAI contract for
+    a specified receiver address by encoding the necessary data and executing the transaction on the network.
+
+    Args:
+        assets_ (int): The amount of assets to be deposited.
+        receiver_ (str): The Ethereum address of the receiver in string format.
+
+    Returns:
+        None: This function does not return any value but prints the transaction receipt.
+
+    Raises:
+        ContractLogicError: If the gas estimation fails due to a contract logic error.
+
+    The function first computes the function selector for the blockchain transaction, encodes the arguments,
+    estimates the gas required, and then sends a signed transaction. In case of a gas estimation error,
+    it falls back to a default gas limit.
+
+    Example:
+        deposit(1000, "0x1234567890abcdef1234567890abcdef12345678")
+    """
     function_signature = "deposit(uint256,address)"
     function_selector = w3.keccak(text=function_signature)[:4]
 

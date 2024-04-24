@@ -7,6 +7,30 @@ config, w3 = load_config_and_web3()
 
 
 def withdraw(assets_: int, receiver_: str, owner_: str) -> None:
+    """
+    Redeem sDAI shares versus the equivalent in DAI.
+
+    This function constructs and sends a transaction for withdrawing assets from a specified owner address
+    to a receiver address by encoding the necessary data and executing the transaction on the network.
+
+    Args:
+        assets_ (int): The amount of assets to be withdrawn.
+        receiver_ (str): The Ethereum address of the receiver in string format.
+        owner_ (str): The Ethereum address of the owner from whom the assets are withdrawn.
+
+    Returns:
+        None: This function does not return any value but prints the transaction receipt.
+
+    Raises:
+        ContractLogicError: If the gas estimation fails due to a contract logic error.
+
+    The function computes the function selector based on the defined function signature, encodes the transaction
+    arguments (assets amount, receiver address, and owner address), estimates the required gas, and sends a
+    signed transaction. If there is an error during gas estimation, it uses a default gas limit.
+
+    Example:
+        withdraw(500, "0xABCDEF1234567890abcdef1234567890abcdefAB", "0xABCDEF1234567890abcdef1234567890abcdefAB")
+    """
     function_signature = "withdraw(uint256,address,address)"
     function_selector = w3.keccak(text=function_signature)[:4]
 

@@ -1,5 +1,5 @@
-from nova_python_sdk.foo import foo
+from nova_sdk.config import SDAI_ADDRESSES_MAP
 
 
-def test_foo():
-    assert foo("foo") == "foo"
+def test_nb_supported_networks():
+    assert len(SDAI_ADDRESSES_MAP) == 1

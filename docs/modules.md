@@ -1,1 +1,1 @@
-::: nova_python_sdk.foo
+::: nova_sdk.deposit

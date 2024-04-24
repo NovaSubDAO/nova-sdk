@@ -1,11 +1,11 @@
 site_name: nova-python-sdk
-repo_url: https://github.com/lakonema2000/nova-python-sdk
+repo_url: https://github.com/Solidi-Labs/nova-python-sdk
 site_url: https://lakonema2000.github.io/nova-python-sdk
 site_description: This is a template repository for Python projects that use Poetry for their dependency management.
 site_author: Solidi Labs
 edit_uri: edit/main/docs/
-repo_name: lakonema2000/nova-python-sdk
-copyright: Maintained by <a href="https://lakonema2000.com">Florian</a>.
+repo_name: Solidi-Labs/nova-python-sdk
+copyright: Maintained by <a href="https://github.com/Solidi-Labs">Solidi Labs</a>.
 
 nav:
   - Home: index.md
@@ -43,9 +43,9 @@ theme:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/lakonema2000/nova-python-sdk
+      link: https://github.com/Solidi-Labs/nova-python-sdk
     - icon: fontawesome/brands/python
-      link: https://pypi.org/project/nova-python-sdk
+      link: https://pypi.org/project/nova-sdk
 
 markdown_extensions:
   - toc:

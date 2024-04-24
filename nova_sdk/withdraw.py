@@ -1,11 +1,12 @@
 import eth_abi
-from config import load_config_and_web3
 from web3.exceptions import ContractLogicError
+
+from nova_sdk.config import load_config_and_web3
 
 config, w3 = load_config_and_web3()
 
 
-def withdraw(assets_, receiver_, owner_):
+def withdraw(assets_: int, receiver_: str, owner_: str) -> None:
     function_signature = "withdraw(uint256,address,address)"
     function_selector = w3.keccak(text=function_signature)[:4]
 

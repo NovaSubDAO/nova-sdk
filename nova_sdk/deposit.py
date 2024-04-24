@@ -1,11 +1,12 @@
 import eth_abi
-from config import load_config_and_web3
 from web3.exceptions import ContractLogicError
+
+from nova_sdk.config import load_config_and_web3
 
 config, w3 = load_config_and_web3()
 
 
-def deposit(assets_, receiver_):
+def deposit(assets_: int, receiver_: str) -> None:
     function_signature = "deposit(uint256,address)"
     function_selector = w3.keccak(text=function_signature)[:4]
 

@@ -1,6 +1,7 @@
 import eth_abi
-from config import load_config_and_web3
 from web3.exceptions import ContractLogicError
+
+from nova_sdk.config import load_config_and_web3
 
 config, w3 = load_config_and_web3()
 

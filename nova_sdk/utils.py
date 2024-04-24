@@ -1,6 +1,6 @@
 import os
 
-from exceptions import EnvVarCantBeEmpty
+from nova_sdk.exceptions import EnvVarCantBeEmpty
 
 
 def get_env(key):

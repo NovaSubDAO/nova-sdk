@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 
-from exceptions import Web3ShouldBeConnected
-from utils import get_env
 from web3 import Web3
+
+from nova_sdk.exceptions import Web3ShouldBeConnected
+from nova_sdk.utils import get_env
 
 SDAI_ADDRESSES_MAP = {"ETHEREUM": "0x83F20F44975D03b1b09e64809B757c47f942BEeA"}
 

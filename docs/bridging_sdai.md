@@ -1,12 +1,14 @@
 # Bridging the gap between Mainnet and Foreign Domains
 
-Nova bridges sDAI by harnessing the canonical domain bridges, for example:
+Nova bridges sDAI (or uses already bridged sDAI) by harnessing the canonical domain bridges, for example:
 
-- The [Optimism Superchain Bridge]() for Optimism and BASE
-- The [Arbitrum Bridge]() for Arbitrum
-- The [Polygon PoS bridge]() for Polygon Mainnet
+- The [Optimism Superchain Bridge](https://app.optimism.io/bridge/deposit) for Optimism and BASE
+- The [Arbitrum Bridge](https://bridge.arbitrum.io/) for Arbitrum
+- The [Polygon PoS bridge](https://portal.polygon.technology/bridge) for Polygon Mainnet
 
-This ensures maximum compatibility with the target domains and minimizes trust between the end user and Nova, since the ultimate control of the sDAI token representation on the specific chain is entrusted to the chain's own bridging mechanism.
+
+This ensures native compatibility with target domains and reduces trust between the end user and Nova.  
+The bridged sDAI token is entrusted to the chain's own bridging mechanism.
 
 !!! warning
     Integrators and users should keep in mind that funds on a domain other than Ethereum Mainnet are at the mercy of its bridge, no matter which asset they hold.

@@ -9,6 +9,8 @@ copyright: Maintained by <a href="https://github.com/Solidi-Labs">Solidi Labs</a
 
 nav:
   - Intro: index.md
+  - What is sDAI?: what_is_sdai.md
+  - Bridging the gap: bridging_sdai.md
   - Python SDK: python_sdk.md
 plugins:
   - search
@@ -48,7 +50,14 @@ extra:
       link: https://pypi.org/project/nova-sdk
 
 markdown_extensions:
+  - footnotes
+  - admonition
   - toc:
       permalink: true
   - pymdownx.arithmatex:
       generic: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format

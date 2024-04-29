@@ -5,6 +5,10 @@ on:
     types: [published]
     branches: [main]
 
+permissions:
+  contents: write
+  deployments: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -39,4 +43,6 @@ jobs:
         uses: ./.github/actions/setup-poetry-env
 
       - name: Deploy documentation
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: poetry run mkdocs gh-deploy --force

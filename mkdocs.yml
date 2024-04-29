@@ -1,11 +1,11 @@
 site_name: nova-python-sdk
-repo_url: https://github.com/Solidi-Labs/nova-python-sdk
-site_url: https://solidi-labs.github.io/nova-python-sdk
+repo_url: https://github.com/NovaSubDAO/nova-python-sdk
+site_url: https://novasubdao.github.io/nova-python-sdk
 site_description: This is a template repository for Python projects that use Poetry for their dependency management.
-site_author: Solidi Labs
-edit_uri: edit/main/docs/
-repo_name: Solidi-Labs/nova-python-sdk
-copyright: Maintained by <a href="https://github.com/Solidi-Labs">Solidi Labs</a>.
+site_author: Nova subDAO
+edit_uri: edit/main/../docs/
+repo_name: NovaSubDAO/nova-python-sdk
+copyright: Maintained by <a href="https://github.com/NovaSubDAO">Nova subDAO</a>.
 
 nav:
   - Intro: index.md
@@ -14,12 +14,12 @@ nav:
   - Python SDK: python_sdk.md
 plugins:
   - search
-  - mkdocstrings:
-      handlers:
-        python:
-          setup_commands:
-            - import sys
-            - sys.path.append('../')
+  # - mkdocstrings:
+  #     handlers:
+  #       python:
+  #         setup_commands:
+  #           - import sys
+  #           - sys.path.append('../')
 theme:
   name: material
   feature:
@@ -45,7 +45,7 @@ theme:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/Solidi-Labs/nova-python-sdk
+      link: https://github.com/NovaSubDAO/nova-python-sdk
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/nova-sdk
 
@@ -56,8 +56,8 @@ markdown_extensions:
       permalink: true
   - pymdownx.arithmatex:
       generic: true
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
+  # - pymdownx.superfences:
+  #     custom_fences:
+  #       - name: mermaid
+  #         class: mermaid
+  #         format: !!python/name:pymdownx.superfences.fence_code_format

@@ -1,0 +1,23 @@
+name: deploy docs
+
+on:
+  main:
+
+permissions:
+  contents: write
+  deployments: write
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-poetry-env
+
+      - name: Deploy documentation
+        run: |
+          pip install mkdocs-material
+          mkdocs gh-deploy --force

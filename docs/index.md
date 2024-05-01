@@ -1,9 +1,9 @@
 # Nova SDKs
 
-[![Release](https://img.shields.io/github/v/release/solidi-labs/nova-python-sdk)](https://img.shields.io/github/v/release/solidi-labs/nova-python-sdk)
-[![Build status](https://img.shields.io/github/actions/workflow/status/solidi-labs/nova-python-sdk/main.yml?branch=main)](https://github.com/solidi-labs/nova-python-sdk/actions/workflows/main.yml?query=branch%3Amain)
-[![Commit activity](https://img.shields.io/github/commit-activity/m/solidi-labs/nova-python-sdk)](https://img.shields.io/github/commit-activity/m/solidi-labs/nova-python-sdk)
-[![License](https://img.shields.io/github/license/solidi-labs/nova-python-sdk)](https://img.shields.io/github/license/solidi-labs/nova-python-sdk)
+[![Release](https://img.shields.io/github/v/release/novasubdao/nova-python-sdk)](https://img.shields.io/github/v/release/novasubdao/nova-python-sdk)
+[![Build status](https://img.shields.io/github/actions/workflow/status/novasubdao/nova-python-sdk/main.yml?branch=main)](https://github.com/novasubdao/nova-python-sdk/actions/workflows/main.yml?query=branch%3Amain)
+[![Commit activity](https://img.shields.io/github/commit-activity/m/novasubdao/nova-python-sdk)](https://img.shields.io/github/commit-activity/m/novasubdao/nova-python-sdk)
+[![License](https://img.shields.io/github/license/novasubdao/nova-python-sdk)](https://img.shields.io/github/license/novasubdao/nova-python-sdk)
 
 **Nova** is a new Maker actor whose goal is to distribute [Maker DSR rate](https://makerburn.com/#/dsr) to untapped markets.
 

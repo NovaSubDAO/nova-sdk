@@ -1,16 +1,12 @@
-name: publish
+name: publish python package
 
 on:
   release:
     types: [published]
     branches: [main]
 
-permissions:
-  contents: write
-  deployments: write
-
 jobs:
-  publish:
+  publish-python:
     runs-on: ubuntu-latest
     steps:
       - name: Check out
@@ -31,18 +27,4 @@ jobs:
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
           RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
-
-  deploy-docs:
-    needs: publish
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out
-        uses: actions/checkout@v3
-
-      - name: Set up the environment
-        uses: ./.github/actions/setup-poetry-env
-
-      - name: Deploy documentation
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: poetry run mkdocs gh-deploy --force
+        working-directory: python

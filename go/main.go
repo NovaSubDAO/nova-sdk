@@ -6,8 +6,8 @@ import (
     "math/big"
 
     "github.com/ethereum/go-ethereum/ethclient"
-	"github.com/NovaSubDAO/nova-python-sdk/go/pkg/config"
-	"github.com/NovaSubDAO/nova-python-sdk/go/pkg/sdk"
+	"github.com/NovaSubDAO/nova-sdk/go/pkg/config"
+	"github.com/NovaSubDAO/nova-sdk/go/pkg/sdk"
 )
 
 func main() {

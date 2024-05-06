@@ -1,4 +1,4 @@
-module github.com/NovaSubDAO/nova-python-sdk/go
+module github.com/NovaSubDAO/nova-sdk/go
 
 go 1.21.3
 

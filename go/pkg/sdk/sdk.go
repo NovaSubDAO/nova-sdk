@@ -5,7 +5,7 @@ import (
 
     "github.com/ethereum/go-ethereum/common"
     "github.com/ethereum/go-ethereum/ethclient"
-	"github.com/NovaSubDAO/nova-python-sdk/go/pkg/contracts"
+	"github.com/NovaSubDAO/nova-sdk/go/pkg/contracts"
 )
 
 type NovaSDK struct {

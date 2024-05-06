@@ -1,10 +1,10 @@
-site_name: nova-python-sdk
-repo_url: https://github.com/NovaSubDAO/nova-python-sdk
-site_url: https://novasubdao.github.io/nova-python-sdk
+site_name: nova-sdk
+repo_url: https://github.com/NovaSubDAO/nova-sdk
+site_url: https://novasubdao.github.io/nova-sdk
 site_description: This is a template repository for Python projects that use Poetry for their dependency management.
 site_author: Nova subDAO
 edit_uri: edit/main/../docs/
-repo_name: NovaSubDAO/nova-python-sdk
+repo_name: NovaSubDAO/nova-sdk
 copyright: Maintained by <a href="https://github.com/NovaSubDAO">Nova subDAO</a>.
 
 nav:
@@ -45,7 +45,7 @@ theme:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/NovaSubDAO/nova-python-sdk
+      link: https://github.com/NovaSubDAO/nova-sdk
     - icon: fontawesome/brands/python
       link: https://pypi.org/project/nova-sdk
 

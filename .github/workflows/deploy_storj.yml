@@ -29,8 +29,8 @@ jobs:
         uses: shallwefootball/s3-upload-action@master
         id: S3
         with:
-          aws_key_id: ${{ secrets.DOCS_AWS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.DOCS_AWS_SECRET_ACCESS_KEY}}
+          aws_key_id: ${{ secrets.DOCS_AWS_ACCESS_KEY }}
+          aws_secret_access_key: ${{ secrets.DOCS_AWS_SECRET_KEY }}
           aws_bucket: ${{ secrets.DOCS_AWS_BUCKET }}
           source_dir: 'site'
           endpoint: ${{ secrets.DOCS_AWS_ENDPOINT }}

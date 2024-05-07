@@ -1,0 +1,38 @@
+name: deploy docs to storj
+
+on:
+  pull_request:
+    branches:
+    - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  deployments: write
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+
+      - name: Set up the environment
+        uses: ./.github/actions/setup-poetry-env
+
+      - name: Deploy documentation
+        run: |
+          pip install mkdocs-material
+          mkdocs build
+
+      - name: deploy to storj
+        uses: shallwefootball/s3-upload-action@master
+        id: S3
+        with:
+          aws_key_id: ${{ secrets.DOCS_AWS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.DOCS_AWS_SECRET_ACCESS_KEY}}
+          aws_bucket: ${{ secrets.DOCS_AWS_BUCKET }}
+          source_dir: 'site'
+          endpoint: ${{ secrets.DOCS_AWS_ENDPOINT }}
+
+

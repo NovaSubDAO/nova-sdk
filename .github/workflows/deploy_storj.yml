@@ -33,6 +33,7 @@ jobs:
           aws_secret_access_key: ${{ secrets.DOCS_AWS_SECRET_KEY }}
           aws_bucket: ${{ secrets.DOCS_AWS_BUCKET }}
           source_dir: 'site'
+          destination_dit: '/'
           endpoint: ${{ secrets.DOCS_AWS_ENDPOINT }}
 
 

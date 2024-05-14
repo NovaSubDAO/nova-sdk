@@ -8,14 +8,17 @@ import (
 
 type Config struct {
     SDaiAddress  string `json:"sDaiAddress"`
+    SDaiDecimals int64  `json:"sDaiDecimals"`
     RpcEndpoint  string
     PrivateKey   string
     ChainId      int64
 }
 
 func LoadConfig() (*Config, error) {
+    configFilename := os.Getenv("CONFIG_FILE")
+
     config := &Config{}
-    configFile, err := os.Open("config.json")
+    configFile, err := os.Open(configFilename)
     if err != nil {
         return nil, err
     }

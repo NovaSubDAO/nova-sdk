@@ -10,6 +10,7 @@ copyright: Maintained by <a href="https://github.com/NovaSubDAO">Nova subDAO</a>
 nav:
   - Intro: index.md
   - What is sDAI?: what_is_sdai.md
+  - sDAI for non-DAI holders: the_nova_contract.md
   - Bridging the gap: bridging_sdai.md
   - SDK documentation: sdk_documentation.md
 plugins:

@@ -19,8 +19,10 @@ This is due to the fact that redemptions for sDAI on the foreign side cannot com
 
 ## Getting sDAI's price right
 
+We rely exclusively on AMM pools to be able to offer sDAI on foreign domains. This requires us to be peroactive in keeping a healthy, liquid market for sDAI and whichever other stablecoins we support.
+
 > Section about how we ensure deep liquidity for different sDAI-stable pairs on foreign domains
 
 ## Supported Venues
 
-> Section about the venues supported for exchange on different foreign domains
+The initial Nova Contract deployment only supports the Velodrome USDC/sDAI Concentrated Liquidity Pool on Optimism. As we leave the PoC phase, we will expand to both other domains and other liquidity pool venues, for better coverage of the domains where users live.

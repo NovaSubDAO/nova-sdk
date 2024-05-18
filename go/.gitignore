@@ -1,2 +1,2 @@
-go
-contracts/
+pkg/contracts/build
+pkg/contracts/*.go

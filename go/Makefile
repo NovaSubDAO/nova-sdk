@@ -1,4 +1,4 @@
 CONTRACT ?= SavingsDai
 
-compile :; cd contracts && solc --bin --abi ${CONTRACT}.sol -o build
-abigen :; abigen --bin=contracts/build/${CONTRACT}.bin --abi=contracts/build/${CONTRACT}.abi --pkg=contracts --out=contracts/${CONTRACT}.go
+compile :; cd pkg/contracts && solc --bin --abi ${CONTRACT}.sol -o build
+abigen :; abigen --bin=pkg/contracts/build/${CONTRACT}.bin --abi=pkg/contracts/build/${CONTRACT}.abi --pkg=contracts --out=pkg/contracts/${CONTRACT}.go

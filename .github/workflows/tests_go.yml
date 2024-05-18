@@ -1,0 +1,49 @@
+name: Run Go Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  RPC_ENDPOINT: ${{ secrets.RPC_ENDPOINT }}
+
+jobs:
+  test:
+    name: Run Go tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Set up Git repository
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+
+    - name: Get dependencies
+      run: go mod tidy
+      working-directory: go
+
+    - name: Install solc
+      run: |
+        sudo add-apt-repository ppa:ethereum/ethereum
+        sudo apt-get update
+        sudo apt-get install -y solc
+
+    - name: Add go/bin to PATH
+      run: export PATH=$HOME/go/bin:$PATH
+
+    - name: Install abigen
+      run: |
+        go install github.com/ethereum/go-ethereum/cmd/abigen@latest
+
+    - name: Compile Solidity artifacts
+      run: make compile
+      working-directory: go
+
+    - name: Run tests
+      run: make test
+      working-directory: go

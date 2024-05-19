@@ -1,4 +1,4 @@
-package tests
+package sdk
 
 import (
     "testing"
@@ -6,10 +6,9 @@ import (
     "github.com/ethereum/go-ethereum/common"
     "github.com/ethereum/go-ethereum/ethclient"
     "github.com/NovaSubDAO/nova-sdk/go/pkg/config"
-    "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk"
 )
 
-func setup(t *testing.T) (*sdk.NovaSDK, func()) {
+func setup(t *testing.T) (*NovaSDK, func()) {
     // Load configuration
     cfg, err := config.LoadConfig()
     if err != nil {
@@ -23,7 +22,7 @@ func setup(t *testing.T) (*sdk.NovaSDK, func()) {
     }
 
     // Initialize the SDK
-    novaSDK, err := sdk.NewNovaSDK(ethClient, cfg.SDaiAddress)
+    novaSDK, err := NewNovaSDK(ethClient, cfg.SDaiAddress)
     if err != nil {
         t.Fatalf("Failed to initialize the Nova SDK: %v", err)
     }

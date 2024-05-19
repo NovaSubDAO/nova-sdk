@@ -16,6 +16,9 @@ type Config struct {
 
 func LoadConfig() (*Config, error) {
     configFilename := os.Getenv("CONFIG_FILE")
+    if configFilename == "" {
+        configFilename = "../../config.json"
+    }
 
     config := &Config{}
     configFile, err := os.Open(configFilename)

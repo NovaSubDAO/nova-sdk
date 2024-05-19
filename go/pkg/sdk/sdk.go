@@ -27,29 +27,23 @@ func NewNovaSDK(client *ethclient.Client, contractAddress string) (*NovaSDK, err
     }, nil
 }
 
-func (sdk *NovaSDK) GetSDaiPrice() (float64, error) {
+func (sdk *NovaSDK) GetSDaiPrice() (*big.Int, error) {
     cfg, err := config.LoadConfig()
     if err != nil {
         log.Fatal("Error loading configuration:", err)
     }
 
-    one := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(cfg.SDaiDecimals)), nil)
+    factor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(cfg.SDaiDecimals)), nil)
 
-    assets, err :=sdk.Contract.ConvertToAssets(nil, one)
+    assets, err :=sdk.Contract.ConvertToAssets(nil, factor)
     if err != nil {
-        return 0, err
+        return big.NewInt(0), err
     }
 
-    assetsFloat := new(big.Float).SetInt(assets)
-    oneFloat := new(big.Float).SetInt(one)
-
-    price := new(big.Float).Quo(assetsFloat, oneFloat)
-    priceFloat, _ := price.Float64()
-
-    return priceFloat, nil
+    return assets, nil
 }
 
-func (sdk *NovaSDK) GetPosition(address common.Address) (float64, error) {
+func (sdk *NovaSDK) GetPosition(address common.Address) (*big.Int, error) {
     cfg, err := config.LoadConfig()
     if err != nil {
         log.Fatal("Error loading configuration:", err)
@@ -57,22 +51,17 @@ func (sdk *NovaSDK) GetPosition(address common.Address) (float64, error) {
 
     balance, err := sdk.Contract.BalanceOf(nil, address)
     if err != nil {
-        return 0, err
+        return big.NewInt(0), err
     }
 
     price, err := sdk.GetSDaiPrice()
     if err != nil {
-        return 0, err
+        return big.NewInt(0), err
     }
 
-    balanceFloat := new(big.Float).SetInt(balance)
-    totalValue := new(big.Float).Mul(balanceFloat, big.NewFloat(price))
+    totalValue := new(big.Int).Mul(balance, price)
+    factor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(cfg.SDaiDecimals)), nil)
+    totalValueNormalized := new(big.Int).Div(totalValue, factor)
 
-    one := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(cfg.SDaiDecimals)), nil)
-    oneFloat := new(big.Float).SetInt(one)
-
-    position := new(big.Float).Quo(totalValue, oneFloat)
-    positionFloat, _ := position.Float64()
-
-    return positionFloat, nil
+    return totalValueNormalized, nil
 }

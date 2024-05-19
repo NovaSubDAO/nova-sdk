@@ -85,7 +85,7 @@ contract SavingsDai {
     uint256 public immutable deploymentChainId;
     bytes32 private immutable _DOMAIN_SEPARATOR;
     bytes32 public constant PERMIT_TYPEHASH = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-    
+
     uint256 private constant RAY = 10 ** 27;
 
     constructor(address _daiJoin, address _pot) {

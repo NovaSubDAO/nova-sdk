@@ -57,7 +57,7 @@ graph LR
 sDAI has been successfully integrated as a core piece of other protocol's infrastructure, such as [Blast](), where it is used as the basis for all stablecoins held in the network.
 
 !!! note
-    The **sDAI** vault contract on Ethereum Mainnet is located at [0x83F20F44975D03b1b09e64809B757c47f942BEeA](https://etherscan.io/token/0x83F20F44975D03b1b09e64809B757c47f942BEeA).
+The **sDAI** vault contract on Ethereum Mainnet is located at [0x83F20F44975D03b1b09e64809B757c47f942BEeA](https://etherscan.io/token/0x83F20F44975D03b1b09e64809B757c47f942BEeA).
 
 ## sDAI's value proposition on other domains
 

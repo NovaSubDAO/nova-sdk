@@ -6,12 +6,11 @@ Nova bridges sDAI (or uses already bridged sDAI) by harnessing the canonical dom
 - The [Arbitrum Bridge](https://bridge.arbitrum.io/) for Arbitrum
 - The [Polygon PoS bridge](https://portal.polygon.technology/bridge) for Polygon Mainnet
 
-
-This ensures native compatibility with target domains and reduces trust between the end user and Nova.  
+This ensures native compatibility with target domains and reduces trust between the end user and Nova.
 The bridged sDAI token is entrusted to the chain's own bridging mechanism.
 
 !!! warning
-    Integrators and users should keep in mind that funds on a domain other than Ethereum Mainnet are at the mercy of its bridge, no matter which asset they hold.
+Integrators and users should keep in mind that funds on a domain other than Ethereum Mainnet are at the mercy of its bridge, no matter which asset they hold.
 
 ### Caveats
 

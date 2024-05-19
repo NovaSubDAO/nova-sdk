@@ -1,6 +1,7 @@
 package sdk
 
 import (
+    "math/big"
     "testing"
 
     "github.com/ethereum/go-ethereum/common"
@@ -43,8 +44,13 @@ func TestGetPrice(t *testing.T) {
         t.Fatalf("Failed to get sDAI price: %v", err)
     }
 
-    // Output the result (you can add more assertions as needed)
-    t.Logf("Output from GetPrice: %f", output)
+    expected := big.NewInt(1083353724548051573)
+
+    if output != expected {
+        // TODO: uncomment when tests will be run with mainnet forking
+        // t.Errorf("Output from GetPrice: %d. It should be %d", output, expected)
+        t.Log("This test is to be run with mainnet forking", output)
+    }
 }
 
 func TestGetPosition(t *testing.T) {
@@ -59,6 +65,18 @@ func TestGetPosition(t *testing.T) {
         t.Fatalf("Failed to get position: %v", err)
     }
 
-    // Output the result (you can add more assertions as needed)
+    t.Logf("Output from GetPosition: %f", output)
+}
+
+func TestGetTotalValue(t *testing.T) {
+    novaSDK, cleanup := setup(t)
+    defer cleanup()
+
+    // Use the SDK to get the total value of the vault
+    output, err := novaSDK.GetTotalValue()
+    if err != nil {
+        t.Fatalf("Failed to get position: %v", err)
+    }
+
     t.Logf("Output from GetPosition: %f", output)
 }

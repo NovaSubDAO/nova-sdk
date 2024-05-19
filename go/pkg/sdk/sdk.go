@@ -27,7 +27,7 @@ func NewNovaSDK(client *ethclient.Client, contractAddress string) (*NovaSDK, err
     }, nil
 }
 
-func (sdk *NovaSDK) GetSDaiPrice() (*big.Int, error) {
+func (sdk *NovaSDK) GetPrice() (*big.Int, error) {
     cfg, err := config.LoadConfig()
     if err != nil {
         log.Fatal("Error loading configuration:", err)
@@ -54,12 +54,36 @@ func (sdk *NovaSDK) GetPosition(address common.Address) (*big.Int, error) {
         return big.NewInt(0), err
     }
 
-    price, err := sdk.GetSDaiPrice()
+    price, err := sdk.GetPrice()
     if err != nil {
         return big.NewInt(0), err
     }
 
-    totalValue := new(big.Int).Mul(balance, price)
+    value := new(big.Int).Mul(balance, price)
+    factor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(cfg.SDaiDecimals)), nil)
+    valueNormalized := new(big.Int).Div(value, factor)
+
+    return valueNormalized, nil
+}
+
+
+func (sdk *NovaSDK) GetTotalValue() (*big.Int, error) {
+    cfg, err := config.LoadConfig()
+    if err != nil {
+        log.Fatal("Error loading configuration:", err)
+    }
+
+    totalSupply, err := sdk.Contract.TotalSupply(nil)
+    if err != nil {
+        return big.NewInt(0), err
+    }
+
+    price, err := sdk.GetPrice()
+    if err != nil {
+        return big.NewInt(0), err
+    }
+
+    totalValue := new(big.Int).Mul(totalSupply, price)
     factor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(cfg.SDaiDecimals)), nil)
     totalValueNormalized := new(big.Int).Div(totalValue, factor)
 

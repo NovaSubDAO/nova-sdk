@@ -27,7 +27,7 @@ func NewNovaSDK(client *ethclient.Client, contractAddress string) (*NovaSDK, err
     }, nil
 }
 
-func (sdk *NovaSDK) GetSDaiPrice() (*big.Int, error) {
+func (sdk *NovaSDK) GetPrice() (*big.Int, error) {
     cfg, err := config.LoadConfig()
     if err != nil {
         log.Fatal("Error loading configuration:", err)
@@ -54,7 +54,7 @@ func (sdk *NovaSDK) GetPosition(address common.Address) (*big.Int, error) {
         return big.NewInt(0), err
     }
 
-    price, err := sdk.GetSDaiPrice()
+    price, err := sdk.GetPrice()
     if err != nil {
         return big.NewInt(0), err
     }

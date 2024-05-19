@@ -33,18 +33,18 @@ func setup(t *testing.T) (*NovaSDK, func()) {
     }
 }
 
-func TestGetSDaiPrice(t *testing.T) {
+func TestGetPrice(t *testing.T) {
     novaSDK, cleanup := setup(t)
     defer cleanup()
 
     // Use the SDK to get sDAI price
-    output, err := novaSDK.GetSDaiPrice()
+    output, err := novaSDK.GetPrice()
     if err != nil {
         t.Fatalf("Failed to get sDAI price: %v", err)
     }
 
     // Output the result (you can add more assertions as needed)
-    t.Logf("Output from GetSDaiPrice: %f", output)
+    t.Logf("Output from GetPrice: %f", output)
 }
 
 func TestGetPosition(t *testing.T) {

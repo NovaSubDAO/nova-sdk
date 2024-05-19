@@ -1,9 +1,3 @@
 # Go SDK
 
-## Env variables
-
-```bash
-export RPC_ENDPOINT=
-export PRIVATE_KEY=
-export CHAIN_ID=
-```
+This SDK aims at interacting with - [Nova](https://novasubdao.github.io/nova-sdk/) savings solution powered by sDAI on several network.

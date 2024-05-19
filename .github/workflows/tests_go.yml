@@ -15,35 +15,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Set up Git repository
-      uses: actions/checkout@v4
+      - name: Set up Git repository
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
 
-    - name: Get dependencies
-      run: go mod tidy
-      working-directory: go
+      - name: Get dependencies
+        run: go mod tidy
+        working-directory: go
 
-    - name: Install solc
-      run: |
-        sudo add-apt-repository ppa:ethereum/ethereum
-        sudo apt-get update
-        sudo apt-get install -y solc
+      - name: Install solc
+        run: |
+          sudo add-apt-repository ppa:ethereum/ethereum
+          sudo apt-get update
+          sudo apt-get install -y solc
 
-    - name: Add go/bin to PATH
-      run: export PATH=$HOME/go/bin:$PATH
+      - name: Add go/bin to PATH
+        run: export PATH=$HOME/go/bin:$PATH
 
-    - name: Install abigen
-      run: |
-        go install github.com/ethereum/go-ethereum/cmd/abigen@latest
+      - name: Install abigen
+        run: |
+          go install github.com/ethereum/go-ethereum/cmd/abigen@latest
 
-    - name: Compile Solidity artifacts
-      run: make compile
-      working-directory: go
+      - name: Compile Solidity artifacts
+        run: make compile
+        working-directory: go
 
-    - name: Run tests
-      run: make test
-      working-directory: go
+      - name: Run tests
+        run: make test
+        working-directory: go

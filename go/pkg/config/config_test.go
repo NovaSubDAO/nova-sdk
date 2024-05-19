@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -27,7 +26,7 @@ func TestLoadConfig(t *testing.T) {
 	}
 
 	// Create a temporary file
-	tmpFile, err := ioutil.TempFile("", "test_config_tmp.json")
+	tmpFile, err := os.CreateTemp("", "test_config_tmp.json")
 	if err != nil {
 		t.Fatalf("Unable to create temporary file: %v", err)
 	}

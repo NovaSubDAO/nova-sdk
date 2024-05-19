@@ -20,3 +20,13 @@ repos:
     rev: "v3.0.3"
     hooks:
       - id: prettier
+
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v1.57.2
+    hooks:
+      - id: golangci-lint
+        args: [--enable=goimports]
+        entry: bash -c 'cd go && golangci-lint run'
+        files: ^go
+        additional_dependencies: [golang.org/x/tools/cmd/goimports]
+        language_version: 1.21.3

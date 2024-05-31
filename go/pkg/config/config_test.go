@@ -9,8 +9,8 @@ import (
 func TestLoadConfig(t *testing.T) {
 	// Define a sample config to be written to the file
 	sampleConfig := Config{
-		SDaiAddress:  "0x123",
-		SDaiDecimals: 18,
+		VaultAddress:  "0x123",
+		VaultDecimals: 18,
 		RpcEndpoint:  "http://localhost:8545",
 		PrivateKey:   "your-private-key",
 		ChainId:      1,
@@ -51,8 +51,8 @@ func TestLoadConfig(t *testing.T) {
 	}
 
 	// Check the loaded config against the expected values
-	if config.SDaiAddress != sampleConfig.SDaiAddress ||
-		config.SDaiDecimals != sampleConfig.SDaiDecimals ||
+	if config.VaultAddress != sampleConfig.VaultAddress ||
+		config.VaultDecimals != sampleConfig.VaultDecimals ||
 		config.RpcEndpoint != sampleConfig.RpcEndpoint ||
 		config.PrivateKey != sampleConfig.PrivateKey ||
 		config.ChainId != sampleConfig.ChainId {

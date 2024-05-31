@@ -7,17 +7,18 @@ import (
 )
 
 type Config struct {
-    SDaiAddress  string `json:"sDaiAddress"`
-    SDaiDecimals int64  `json:"sDaiDecimals"`
-    RpcEndpoint  string
-    PrivateKey   string
-    ChainId      int64
+    VaultAddress  string `json:"vaultAddress"`
+    VaultDecimals  int64  `json:"vaultDecimals"`
+    RpcEndpoint   string
+    PrivateKey    string
+    ChainId       int64
 }
 
 func LoadConfig() (*Config, error) {
     configFilename := os.Getenv("CONFIG_FILE")
     if configFilename == "" {
-        configFilename = "../../config.json"
+        pwd := os.Getenv("PWD")
+        configFilename = pwd + "/config.json"
     }
 
     config := &Config{}

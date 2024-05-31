@@ -5,38 +5,29 @@ import (
     "testing"
 
     "github.com/ethereum/go-ethereum/common"
-    "github.com/ethereum/go-ethereum/ethclient"
     "github.com/NovaSubDAO/nova-sdk/go/pkg/config"
 )
 
-func setup(t *testing.T) (*NovaSDK, func()) {
+func setup(t *testing.T) (*NovaSDK, error) {
     // Load configuration
     cfg, err := config.LoadConfig()
     if err != nil {
         t.Fatalf("Error loading configuration: %v", err)
     }
 
-    // Initialize the Ethereum client
-    ethClient, err := ethclient.Dial(cfg.RpcEndpoint)
-    if err != nil {
-        t.Fatalf("Failed to connect to Ethereum client: %v", err)
-    }
-
     // Initialize the SDK
-    novaSDK, err := NewNovaSDK(ethClient, cfg.SDaiAddress)
-    if err != nil {
-        t.Fatalf("Failed to initialize the Nova SDK: %v", err)
-    }
+    novaSDK, cleanup := NewNovaSDK(cfg.VaultAddress)
+    defer cleanup()
 
     // Return the initialized SDK and a cleanup function to close the client
-    return novaSDK, func() {
-        ethClient.Close()
-    }
+    return novaSDK, nil
 }
 
 func TestGetPrice(t *testing.T) {
-    novaSDK, cleanup := setup(t)
-    defer cleanup()
+    novaSDK, err := setup(t)
+    if err != nil {
+        t.Fatalf("Failed to initialize SDK: %v", err)
+    }
 
     // Use the SDK to get sDAI price
     output, err := novaSDK.GetPrice()
@@ -54,8 +45,11 @@ func TestGetPrice(t *testing.T) {
 }
 
 func TestGetPosition(t *testing.T) {
-    novaSDK, cleanup := setup(t)
-    defer cleanup()
+    novaSDK, err := setup(t)
+    if err != nil {
+        t.Fatalf("Failed to initialize SDK: %v", err)
+    }
+
 
     // Use the SDK to get the position of a user
     addressStr := "0x4aa42145aa6ebf72e164c9bbc74fbd3788045016"
@@ -69,8 +63,10 @@ func TestGetPosition(t *testing.T) {
 }
 
 func TestGetTotalValue(t *testing.T) {
-    novaSDK, cleanup := setup(t)
-    defer cleanup()
+    novaSDK, err := setup(t)
+    if err != nil {
+        t.Fatalf("Failed to initialize SDK: %v", err)
+    }
 
     // Use the SDK to get the total value of the vault
     output, err := novaSDK.GetTotalValue()

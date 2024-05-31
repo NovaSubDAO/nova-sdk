@@ -1,12 +1,9 @@
 # Nova SDKs
 
-[![Release](https://img.shields.io/github/v/release/novasubdao/nova-sdk)](https://img.shields.io/github/v/release/novasubdao/nova-sdk)
-[![Build status](https://img.shields.io/github/actions/workflow/status/novasubdao/nova-sdk/main.yml?branch=main)](https://github.com/novasubdao/nova-sdk/actions/workflows/main.yml?query=branch%3Amain)
-[![Commit activity](https://img.shields.io/github/commit-activity/m/novasubdao/nova-sdk)](https://img.shields.io/github/commit-activity/m/novasubdao/nova-sdk)
-[![License](https://img.shields.io/github/license/novasubdao/nova-sdk)](https://img.shields.io/github/license/novasubdao/nova-sdk)
+**Nova** is a new Maker actor whose goal is to explore new ( “nova” ) market segments for the Maker Ecosystem.
 
-**Nova** is a new Maker actor whose goal is to distribute [Maker DSR rate](https://makerburn.com/#/dsr) to untapped markets.
+Our initial target is on crypto newcomers / beginners across Emerging Markets, ie. those users who are NOT DeFi native and bring them easy access to Maker offerings such as our savings rate and upcoming token farms.
 
-We do this by ensuring deep sDAI liquidity on several networks, and by helping technical integration via SDKs to enable a quick and flexible integration to clients' systems.
+We believe this is best achieved through a B2B model and we provide SDKs to enable an easy and rapid integration for our distribution partners.
 
-We currently support `Python` and plan to support `Go` and `Typescript` in a near future. Please find technical documentation of each SDK in the left bar.
+We currently support Go SDK. Please find its technical documentation in the left bar.

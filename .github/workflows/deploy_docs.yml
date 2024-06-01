@@ -2,6 +2,7 @@ name: deploy docs
 
 on:
   main:
+  pull_request:
 
 permissions:
   contents: write
@@ -20,4 +21,5 @@ jobs:
       - name: Deploy documentation
         run: |
           pip install mkdocs-material
+          pip install mkdocs-mermaid2-plugin
           mkdocs gh-deploy --force

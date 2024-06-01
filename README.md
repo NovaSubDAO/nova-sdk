@@ -1,7 +1,7 @@
 # Nova SDK
 
 This repository contains the code of Nova SDK and its documentation.
-Nova SDK enables interacting with Nova Vault contract, that eases sDAI integration with B2B partners on L1 & L2 domains.
+Nova SDK enables interacting with [Nova Vault](https://github.com/NovaSubDAO/nova-vault), that eases sDAI distribution to B2B partners on L1 & L2 domains.
 
 Supported domains are:
 

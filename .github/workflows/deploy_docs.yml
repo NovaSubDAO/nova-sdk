@@ -1,8 +1,9 @@
 name: deploy docs
 
 on:
-  main:
-  pull_request:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -15,8 +16,8 @@ jobs:
       - name: Check out
         uses: actions/checkout@v3
 
-      - name: Set up the environment
-        uses: ./.github/actions/setup-poetry-env
+      # - name: Set up the environment
+      #   uses: ./.github/actions/setup-poetry-env
 
       - name: Deploy documentation
         run: |

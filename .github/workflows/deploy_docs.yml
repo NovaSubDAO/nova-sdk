@@ -1,7 +1,9 @@
 name: deploy docs
 
 on:
-  main:
+  push:
+    branches:
+      - main
   pull_request:
 
 permissions:

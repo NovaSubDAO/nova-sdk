@@ -1,52 +1,35 @@
 package config
 
 import (
-    "encoding/json"
-    "os"
-	"strconv"
+    "fmt"
 )
 
 type Config struct {
     VaultAddress  string `json:"vaultAddress"`
     VaultDecimals  int64  `json:"vaultDecimals"`
     RpcEndpoint   string
-    PrivateKey    string
     ChainId       int64
 }
 
-func LoadConfig() (*Config, error) {
-    configFilename := os.Getenv("CONFIG_FILE")
-    if configFilename == "" {
-        pwd := os.Getenv("PWD")
-        configFilename = pwd + "/config.json"
-    }
-
-    config := &Config{}
-    configFile, err := os.Open(configFilename)
-    if err != nil {
-        return nil, err
-    }
-    defer configFile.Close()
-
-    decoder := json.NewDecoder(configFile)
-    if err = decoder.Decode(config); err != nil {
-        return nil, err
-    }
-
-    overrideWithEnv(config)
-    return config, nil
-}
-
-func overrideWithEnv(c *Config) {
-    if value := os.Getenv("RPC_ENDPOINT"); value != "" {
-        c.RpcEndpoint = value
-    }
-    if value := os.Getenv("PRIVATE_KEY"); value != "" {
-        c.PrivateKey = value
-    }
-    if value := os.Getenv("CHAIN_ID"); value != "" {
-        if chainID, err := strconv.ParseInt(value, 10, 64); err == nil {
-            c.ChainId = chainID
+func LoadConfig(rpcEndpoint string, chainId int64) (*Config, error) {
+    var config Config
+    switch chainId {
+    case 1:
+        config = Config{
+            RpcEndpoint:   rpcEndpoint,
+            ChainId:       chainId,
+            VaultAddress:  "0x83F20F44975D03b1b09e64809B757c47f942BEeA",
+            VaultDecimals: 18,
         }
+    case 10:
+        config = Config{
+            RpcEndpoint:   rpcEndpoint,
+            ChainId:       chainId,
+            VaultAddress:  "0x36A2f7Fb07c102415afe2461a9A43377970E081c",
+            VaultDecimals: 18,
+        }
+    default:
+        return nil, fmt.Errorf("unsupported chain id %d", chainId)
     }
+    return &config, nil
 }

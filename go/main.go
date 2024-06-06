@@ -3,24 +3,25 @@ package main
 import (
     "log"
 
-    "github.com/NovaSubDAO/nova-sdk/go/pkg/config"
     "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk"
 )
 
 func main() {
-    cfg, err := config.LoadConfig()
+    // check vault address on ethereum mainnet
+    chainId := int64(1)
+    novaSdk, err := sdk.NewNovaSDK("", chainId)
     if err != nil {
         log.Fatal("Error loading configuration:", err)
     }
-    log.Println("sDAI address:", cfg.VaultAddress)
+    log.Println("chain id:", novaSdk.Config.ChainId)
+    log.Println("vault address:", novaSdk.Config.VaultAddress)
 
-    // Ensure sdk is properly initialized
-    client, cleanup := sdk.NewNovaSDK(cfg.VaultAddress)
-	defer cleanup()
-
-    result, err := client.GetPrice()
+    // check vault address on ethereum optimism
+    chainId = 10
+    novaSdk, err = sdk.NewNovaSDK("", chainId)
     if err != nil {
-        log.Fatal("Error getting price:", err)
+        log.Fatal("Error loading configuration:", err)
     }
-    log.Println("Price:", result)
+    log.Println("chain id:", novaSdk.Config.ChainId)
+    log.Println("vault address:", novaSdk.Config.VaultAddress)
 }

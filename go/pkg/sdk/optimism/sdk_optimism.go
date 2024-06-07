@@ -6,15 +6,28 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+    "github.com/ethereum/go-ethereum/ethclient"
     "github.com/NovaSubDAO/nova-sdk/go/pkg/config"
+    "github.com/NovaSubDAO/nova-sdk/go/pkg/contracts"
 )
 
 type SdkOptimism struct {
     Config *config.Config
+    Contract *contracts.ContractsCaller
 }
 
-func NewSdkOptimism(cfg *config.Config) *SdkOptimism {
-    return &SdkOptimism{Config: cfg}
+func NewSdkOptimism(cfg *config.Config) (*SdkOptimism, error) {
+    client, err := ethclient.Dial(cfg.RpcEndpoint)
+    if err != nil {
+		return nil, fmt.Errorf("Failed to connect to Optimism client: %w", err)
+    }
+
+    contract, err := contracts.NewContractsCaller(common.HexToAddress(cfg.VaultAddress), client)
+    if err != nil {
+		return nil, fmt.Errorf("Failed to instantiate contract caller: %w", err)
+    }
+
+    return &SdkOptimism{Config: cfg, Contract: contract}, nil
 }
 
 func (sdk *SdkOptimism) GetPrice() (*big.Int, error) {

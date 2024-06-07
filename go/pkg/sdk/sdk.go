@@ -22,11 +22,15 @@ func NewNovaSDK(rpcEndpoint string, chainId int64) (*NovaSDK, error) {
     var sdkDomain SdkInterface
     switch chainId {
     case 1:
-        sdkDomain = ethereum.NewSdkEthereum(cfg)
+        sdkDomain, err = ethereum.NewSdkEthereum(cfg)
     case 10:
-        sdkDomain = optimism.NewSdkOptimism(cfg)
+        sdkDomain, err = optimism.NewSdkOptimism(cfg)
     default:
         return nil, fmt.Errorf("unsupported chain id %d", chainId)
+    }
+
+    if err != nil {
+        return nil, fmt.Errorf("Failed to instantiate SDK: %w", err)
     }
 
     return &NovaSDK{

@@ -6,14 +6,11 @@ import (
 	"fmt"
 	"log"
 	"math/big"
-	"os"
-	"strings"
 
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/config"
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/contracts"
 	abiss "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/ethereum/abis"
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -104,17 +101,6 @@ func (sdk *SdkEthereum) CreateDepositTransaction(fromAddress common.Address, sta
 	gasPrice, err := client.SuggestGasPrice(context.Background())
 	if err != nil {
 		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
-	}
-
-	abiPath := "abis/SavingsDai.json"
-	file, err := os.ReadFile(abiPath)
-	if err != nil {
-		return "", fmt.Errorf("Failed to read ABI file: %w", err)
-	}
-
-	parsedABI, err := abi.JSON(strings.NewReader(string(file)))
-	if err != nil {
-		return "", fmt.Errorf("Failed to parse ABI: %w", err)
 	}
 
 	contractAddress := common.HexToAddress(sdk.Config.VaultAddress)

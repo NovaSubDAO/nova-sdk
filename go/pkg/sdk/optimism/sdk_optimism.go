@@ -132,7 +132,7 @@ func (sdk *SdkOptimism) CreateDepositTransaction(fromAddress common.Address, sta
 		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
 	}
 
-    abiPath := "pkg/sdk/optimism/abis/NovaVault.json"
+    abiPath := "./abis/NovaVault.json"
     file, err := os.ReadFile(abiPath)
     if err != nil {
 		return "", fmt.Errorf("Failed to read ABI file: %w", err)
@@ -185,7 +185,7 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(fromAddress common.Address, st
 		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
 	}
 
-    abiPath := "pkg/sdk/optimism/abis/NovaVault.json"
+    abiPath := "./abis/NovaVault.json"
     file, err := os.ReadFile(abiPath)
     if err != nil {
 		return "", fmt.Errorf("Failed to read ABI file: %w", err)

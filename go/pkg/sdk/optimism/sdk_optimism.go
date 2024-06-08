@@ -116,7 +116,60 @@ func (sdk *SdkOptimism) GetSlippage(amount *big.Int) (*big.Int, error) {
 	return nil, fmt.Errorf("Not yet implemented")
 }
 
-func (sdk *SdkOptimism) CreateDepositTransaction(fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
+func (sdk *SdkOptimism) CreateDepositTransaction(fromAddress common.Address, stable common.Address, amount *big.Int, referral *big.Int) (string, error) {
+	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
+	if err != nil {
+		return "", fmt.Errorf("Failed to connect to the Optimism client: %v", err)
+	}
+
+	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
+	if err != nil {
+		return "", fmt.Errorf("Failed to get nonce: %v", err)
+	}
+
+    gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
+	}
+
+    abiPath := "pkg/sdk/optimism/abis/NovaVault.json"
+    file, err := os.ReadFile(abiPath)
+    if err != nil {
+		return "", fmt.Errorf("Failed to read ABI file: %w", err)
+    }
+
+    parsedABI, err := abi.JSON(strings.NewReader(string(file)))
+    if err != nil {
+		return "", fmt.Errorf("Failed to parse ABI: %w", err)
+    }
+
+    contractAddress := common.HexToAddress(sdk.Config.VaultAddress)
+
+    referralUint16 := uint16(referral.Uint64())
+    data, err := parsedABI.Pack("deposit", stable, amount, referralUint16)
+	if err != nil {
+		return "", fmt.Errorf("ABI pack failed: %v", err)
+	}
+
+	// Estimating the gas needed for the transaction
+	msg := ethereum.CallMsg{From: fromAddress, To: &contractAddress, GasPrice: gasPrice, Value: big.NewInt(0), Data: data}
+	gasLimit, err := client.EstimateGas(context.Background(), msg)
+	if err != nil {
+		log.Printf("Gas estimation failed, using fallback gas limit: %v", err)
+		gasLimit = 2000000 // Fallback gas limit
+	}
+
+    tx := types.NewTransaction(nonce, contractAddress, big.NewInt(0), gasLimit, gasPrice, data)
+
+	txJSON, err := json.Marshal(tx)
+	if err != nil {
+		return "", fmt.Errorf("Failed to marshal transaction: %w", err)
+	}
+
+    return string(txJSON), nil
+}
+
+func (sdk *SdkOptimism) CreateWithdrawTransaction(fromAddress common.Address, stable common.Address, amount *big.Int, referral *big.Int) (string, error) {
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("Failed to connect to the Ethereum client: %v", err)
@@ -145,59 +198,7 @@ func (sdk *SdkOptimism) CreateDepositTransaction(fromAddress common.Address, amo
 
     contractAddress := common.HexToAddress(sdk.Config.VaultAddress)
 
-	data, err := parsedABI.Pack("deposit", amount, fromAddress, referral)
-	if err != nil {
-		return "", fmt.Errorf("ABI pack failed: %v", err)
-	}
-
-	// Estimating the gas needed for the transaction
-	msg := ethereum.CallMsg{From: fromAddress, To: &contractAddress, GasPrice: gasPrice, Value: big.NewInt(0), Data: data}
-	gasLimit, err := client.EstimateGas(context.Background(), msg)
-	if err != nil {
-		log.Printf("Gas estimation failed, using fallback gas limit: %v", err)
-		gasLimit = 2000000 // Fallback gas limit
-	}
-
-    tx := types.NewTransaction(nonce, contractAddress, big.NewInt(0), gasLimit, gasPrice, data)
-
-	txJSON, err := json.Marshal(tx)
-	if err != nil {
-		return "", fmt.Errorf("Failed to marshal transaction: %w", err)
-	}
-
-    return string(txJSON), nil
-}
-
-func (sdk *SdkOptimism) CreateWithdrawTransaction(fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
-	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
-	if err != nil {
-		return "", fmt.Errorf("Failed to connect to the Ethereum client: %v", err)
-	}
-
-	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
-	if err != nil {
-		return "", fmt.Errorf("Failed to get nonce: %v", err)
-	}
-
-    gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
-	}
-
-    abiPath := "pkg/sdk/optimism/abis/SavingsDai.json"
-    file, err := os.ReadFile(abiPath)
-    if err != nil {
-		return "", fmt.Errorf("Failed to read ABI file: %w", err)
-    }
-
-    parsedABI, err := abi.JSON(strings.NewReader(string(file)))
-    if err != nil {
-		return "", fmt.Errorf("Failed to parse ABI: %w", err)
-    }
-
-    contractAddress := common.HexToAddress(sdk.Config.VaultAddress)
-
-	data, err := parsedABI.Pack("withdraw", amount, fromAddress, fromAddress)
+	data, err := parsedABI.Pack("withdraw", stable, amount)
 	if err != nil {
 		return "", fmt.Errorf("ABI pack failed: %v", err)
 	}

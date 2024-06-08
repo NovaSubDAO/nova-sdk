@@ -20,12 +20,12 @@ func main() {
     log.Println("vault address:", novaSdk.Config.VaultAddress)
     amount := big.NewInt(100)
     referral := big.NewInt(123)
-    tx, err := novaSdk.SdkDomain.CreateDepositTransaction(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
+    tx, err := novaSdk.SdkDomain.CreateDepositTransaction(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
     if err != nil {
         log.Fatal("Error creating deposit transaction:", err)
     }
     log.Println("deposit tx:", tx)
-    tx, err = novaSdk.SdkDomain.CreateWithdrawTransaction(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
+    tx, err = novaSdk.SdkDomain.CreateWithdrawTransaction(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
     if err != nil {
         log.Fatal("Error creating withdraw transaction:", err)
     }
@@ -42,12 +42,12 @@ func main() {
     }
     log.Println("chain id:", novaSdk.Config.ChainId)
     log.Println("vault address:", novaSdk.Config.VaultAddress)
-    tx, err = novaSdk.SdkDomain.CreateDepositTransaction(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
+    tx, err = novaSdk.SdkDomain.CreateDepositTransaction(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
     if err != nil {
         log.Fatal("Error creating deposit transaction:", err)
     }
     log.Println("deposit tx:", tx)
-    tx, err = novaSdk.SdkDomain.CreateWithdrawTransaction(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
+    tx, err = novaSdk.SdkDomain.CreateWithdrawTransaction(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
     if err != nil {
         log.Fatal("Error creating withdraw transaction:", err)
     }

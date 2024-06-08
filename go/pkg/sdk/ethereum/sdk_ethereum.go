@@ -88,7 +88,7 @@ func (sdk *SdkEthereum) GetSlippage(amount *big.Int) (*big.Int, error) {
 	return nil, fmt.Errorf("Not yet implemented")
 }
 
-func (sdk *SdkEthereum) CreateDepositTransaction(fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
+func (sdk *SdkEthereum) CreateDepositTransaction(fromAddress common.Address, stable common.Address, amount *big.Int, referral *big.Int) (string, error) {
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("Failed to connect to the Ethereum client: %v", err)
@@ -140,7 +140,7 @@ func (sdk *SdkEthereum) CreateDepositTransaction(fromAddress common.Address, amo
     return string(txJSON), nil
 }
 
-func (sdk *SdkEthereum) CreateWithdrawTransaction(fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
+func (sdk *SdkEthereum) CreateWithdrawTransaction(fromAddress common.Address, stable common.Address, amount *big.Int, referral *big.Int) (string, error) {
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("Failed to connect to the Ethereum client: %v", err)

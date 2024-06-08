@@ -13,8 +13,8 @@ type SdkInterface interface {
     GetTotalValue() (*big.Int, error)
     GetSlippage(amount *big.Int) (*big.Int, error)
 
-    CreateDepositTransaction(common.Address, *big.Int, *big.Int) (string, error)
-    CreateWithdrawTransaction(common.Address, *big.Int, *big.Int) (string, error)
+    CreateDepositTransaction(common.Address, common.Address, *big.Int, *big.Int) (string, error)
+    CreateWithdrawTransaction(common.Address, common.Address, *big.Int, *big.Int) (string, error)
 
     Deposit(*big.Int, common.Address, big.Int) (*types.Transaction, error)
     Withdraw(*big.Int, common.Address, big.Int) (*types.Transaction, error)

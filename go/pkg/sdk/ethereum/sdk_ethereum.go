@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"strings"
 
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/config"
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/contracts"
-	abiss "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/ethereum/abis"
+	ethereumSavingsDai "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/ethereum/abis"
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -105,19 +106,15 @@ func (sdk *SdkEthereum) CreateDepositTransaction(fromAddress common.Address, sta
 
 	contractAddress := common.HexToAddress(sdk.Config.VaultAddress)
 
-	contract, err := abiss.NewAbisTransactor(contractAddress, client)
+	contractAbi, err := abi.JSON(strings.NewReader(ethereumSavingsDai.EthereumSavingsDaiABI))
 	if err != nil {
-		return "", fmt.Errorf("failed to instantiate contract transactor: %w", err)
+		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
 	}
 
-	msg, err := contract.Deposit(&bind.TransactOpts{
-		From: fromAddress,
-	}, amount, fromAddress)
+	data, err := contractAbi.Pack("deposit", amount, fromAddress)
 	if err != nil {
 		return "", fmt.Errorf("failed to create deposit message: %w", err)
 	}
-
-	data := msg.Data()
 
 	// Estimating the gas needed for the transaction
 	call := ethereum.CallMsg{From: fromAddress, To: &contractAddress, GasPrice: gasPrice, Value: big.NewInt(0), Data: data}
@@ -155,20 +152,15 @@ func (sdk *SdkEthereum) CreateWithdrawTransaction(fromAddress common.Address, st
 
 	contractAddress := common.HexToAddress(sdk.Config.VaultAddress)
 
-	contract, err := abiss.NewAbisTransactor(contractAddress, client)
+	contractAbi, err := abi.JSON(strings.NewReader(ethereumSavingsDai.EthereumSavingsDaiABI))
 	if err != nil {
-		return "", fmt.Errorf("failed to instantiate contract transactor: %w", err)
+		return "", fmt.Errorf("failed to parse contract ABI: %w", err)
 	}
 
-	msg, err := contract.Withdraw(&bind.TransactOpts{
-		From: fromAddress,
-	}, amount, fromAddress, fromAddress)
-
+	data, err := contractAbi.Pack("withdraw", amount, fromAddress, fromAddress)
 	if err != nil {
-		return "", fmt.Errorf("failed to create withdraw message: %w", err)
+		return "", fmt.Errorf("failed to pack withdraw message: %w", err)
 	}
-
-	data := msg.Data()
 
 	// Estimating the gas needed for the transaction
 	call := ethereum.CallMsg{From: fromAddress, To: &contractAddress, GasPrice: gasPrice, Value: big.NewInt(0), Data: data}

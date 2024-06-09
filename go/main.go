@@ -17,19 +17,28 @@ func main() {
 		log.Fatal("Error loading configuration:", err)
 	}
 	log.Println("chain id:", novaSdk.Config.ChainId)
+	log.Println("----------------------------------------")
 	log.Println("vault address:", novaSdk.Config.VaultAddress)
-	amount := big.NewInt(100)
+	log.Println("----------------------------------------")
+	amount := big.NewInt(1e3)
 	referral := big.NewInt(123)
 	tx, err := novaSdk.SdkDomain.CreateDepositTransaction(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
 	if err != nil {
 		log.Fatal("Error creating deposit transaction:", err)
 	}
 	log.Println("deposit tx:", tx)
+	log.Println("----------------------------------------")
 	tx, err = novaSdk.SdkDomain.CreateWithdrawTransaction(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
 	if err != nil {
 		log.Fatal("Error creating withdraw transaction:", err)
 	}
 	log.Println("withdraw tx:", tx)
+	log.Println("----------------------------------------")
+	slippage, err := novaSdk.SdkDomain.GetSlippage(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount)
+	if err != nil {
+		log.Fatal("Error getting slippage:", err)
+	}
+	log.Println("slippage:", slippage)
 	log.Println("----------------------------------------")
 	log.Println("----------------------------------------")
 	log.Println("----------------------------------------")
@@ -42,15 +51,27 @@ func main() {
 		log.Fatal("Error loading configuration:", err)
 	}
 	log.Println("chain id:", novaSdk.Config.ChainId)
+	log.Println("----------------------------------------")
 	log.Println("vault address:", novaSdk.Config.VaultAddress)
+	log.Println("----------------------------------------")
 	tx, err = novaSdk.SdkDomain.CreateDepositTransaction(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
 	if err != nil {
 		log.Fatal("Error creating deposit transaction:", err)
 	}
 	log.Println("deposit tx:", tx)
+	log.Println("----------------------------------------")
 	tx, err = novaSdk.SdkDomain.CreateWithdrawTransaction(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
 	if err != nil {
 		log.Fatal("Error creating withdraw transaction:", err)
 	}
 	log.Println("withdraw tx:", tx)
+	log.Println("----------------------------------------")
+	slippage, err = novaSdk.SdkDomain.GetSlippage(common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount)
+	if err != nil {
+		log.Fatal("Error getting slippage:", err)
+	}
+	log.Println("slippage:", slippage)
+	log.Println("----------------------------------------")
+	log.Println("----------------------------------------")
+	log.Println("----------------------------------------")
 }

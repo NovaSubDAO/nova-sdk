@@ -37,19 +37,7 @@ func NewSdkOptimism(cfg *config.Config) (*SdkOptimism, error) {
 	return &SdkOptimism{Config: cfg, Contract: contract}, nil
 }
 
-func (sdk *SdkOptimism) GetPrice() (*big.Int, error) {
-	return nil, fmt.Errorf("Not yet implemented")
-}
-
-func (sdk *SdkOptimism) GetPosition(address common.Address) (*big.Int, error) {
-	return nil, fmt.Errorf("Not yet implemented")
-}
-
-func (sdk *SdkOptimism) GetTotalValue() (*big.Int, error) {
-	return nil, fmt.Errorf("Not yet implemented")
-}
-
-func (sdk *SdkOptimism) GetSlippage(address common.Address, amount *big.Int) (*big.Int, error) {
+func (sdk *SdkOptimism) getPriceFromInput(input optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV2Params) (*big.Int, error) {
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading client: %w", err)
@@ -62,14 +50,7 @@ func (sdk *SdkOptimism) GetSlippage(address common.Address, amount *big.Int) (*b
 		return nil, fmt.Errorf("Failed to parse contract ABI: %w", err)
 	}
 
-	// Define the parameters for the function call
-	tokenIn := common.HexToAddress("0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85")
-	tokenOut := common.HexToAddress("0x2218a117083f5B482B0bB821d27056Ba9c04b1D3")
-	amountIn := big.NewInt(100) // example value; adjust as needed
-	fee := big.NewInt(3000)     // Fee tier, adjust according to your scenario
-
-	// Packing the input arguments
-	data, err := contractAbi.Pack("quoteExactInputSingleV2", tokenIn, tokenOut, fee, amountIn, false)
+	data, err := contractAbi.Pack("quoteExactInputSingleV2", input)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to pack arguments: %w", err)
 	}
@@ -92,7 +73,6 @@ func (sdk *SdkOptimism) GetSlippage(address common.Address, amount *big.Int) (*b
 	if err != nil {
 		return nil, fmt.Errorf("Failed to unpack function output: %w", err)
 	}
-	fmt.Println("Output from contract call:", results)
 
 	// Type assert the result as *big.Int
 	result, ok := results[0].(*big.Int)
@@ -101,6 +81,73 @@ func (sdk *SdkOptimism) GetSlippage(address common.Address, amount *big.Int) (*b
 	}
 
 	return result, nil
+}
+
+func (sdk *SdkOptimism) GetPrice() (*big.Int, error) {
+	// Define the parameters for the function call
+	tokenIn := common.HexToAddress("0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85")
+	tokenOut := common.HexToAddress("0x2218a117083f5B482B0bB821d27056Ba9c04b1D3")
+
+	// Packing the input arguments
+	input := optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV2Params{
+		TokenIn:  tokenIn,
+		TokenOut: tokenOut,
+		Stable:   false,
+		AmountIn: big.NewInt(1),
+	}
+
+	result, err := sdk.getPriceFromInput(input)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get price from input params: %w", err)
+	}
+
+	return result, nil
+}
+
+func (sdk *SdkOptimism) GetPosition(address common.Address) (*big.Int, error) {
+	return nil, fmt.Errorf("Not yet implemented")
+}
+
+func (sdk *SdkOptimism) GetTotalValue() (*big.Int, error) {
+	return nil, fmt.Errorf("Not yet implemented")
+}
+
+func (sdk *SdkOptimism) GetSlippage(stable common.Address, amount *big.Int) (float64, error) {
+	// Define the parameters for the function call
+	tokenIn := common.HexToAddress("0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85")
+	tokenOut := common.HexToAddress("0x2218a117083f5B482B0bB821d27056Ba9c04b1D3")
+
+	// Packing the input arguments
+	input := optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV2Params{
+		TokenIn:  tokenIn,
+		TokenOut: tokenOut,
+		Stable:   false,
+		AmountIn: big.NewInt(1),
+	}
+	resultOne, err := sdk.getPriceFromInput(input)
+	if err != nil {
+		return 0, fmt.Errorf("Failed to get price from input params: %w", err)
+	}
+
+	input = optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV2Params{
+		TokenIn:  tokenIn,
+		TokenOut: tokenOut,
+		Stable:   false,
+		AmountIn: amount,
+	}
+	resultAmount, err := sdk.getPriceFromInput(input)
+	if err != nil {
+		return 0, fmt.Errorf("Failed to get price from input params: %w", err)
+	}
+
+	resultOneFloat := new(big.Float).SetInt(resultOne)
+	resultAmountFloat := new(big.Float).SetInt(resultAmount)
+	amountFloat := new(big.Float).SetInt(amount)
+	resultAmountFloat.Quo(resultAmountFloat, amountFloat)
+	diff := new(big.Float).Sub(resultAmountFloat, resultOneFloat)
+	percentageChange, _ := new(big.Float).Quo(diff, resultOneFloat).Float64()
+
+	return percentageChange, nil
 }
 
 func (sdk *SdkOptimism) CreateDepositTransaction(fromAddress common.Address, stable common.Address, amount *big.Int, referral *big.Int) (string, error) {

@@ -3,10 +3,10 @@ optimism_artifacts := $(wildcard pkg/sdk/optimism/abis/*.json)
 ethereum_artifacts := $(wildcard pkg/sdk/ethereum/abis/*.json)
 
 $(optimism_artifacts:.json=.go): %.go : %.json
-	abigen --abi=$< --pkg=optimism$(basename $(notdir $<)) --out=$@
+	abigen --abi=$< --pkg=optimismContracts --type=$(basename $(notdir $<)) --out=$@
 
 $(ethereum_artifacts:.json=.go): %.go : %.json
-	abigen --abi=$< --pkg=ethereum$(basename $(notdir $<)) --out=$@
+	abigen --abi=$< --pkg=ethereumContracts --type=$(basename $(notdir $<)) --out=$@
 
 build: $(optimism_artifacts:.json=.go) $(ethereum_artifacts:.json=.go)
 

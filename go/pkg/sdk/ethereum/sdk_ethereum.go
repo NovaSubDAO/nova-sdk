@@ -10,7 +10,7 @@ import (
 
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/config"
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/contracts"
-	ethereumSavingsDai "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/ethereum/abis"
+	ethereumContracts "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/ethereum/abis"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -106,7 +106,7 @@ func (sdk *SdkEthereum) CreateDepositTransaction(fromAddress common.Address, sta
 
 	contractAddress := common.HexToAddress(sdk.Config.VaultAddress)
 
-	contractAbi, err := abi.JSON(strings.NewReader(ethereumSavingsDai.EthereumSavingsDaiABI))
+	contractAbi, err := abi.JSON(strings.NewReader(ethereumContracts.SavingsDaiABI))
 	if err != nil {
 		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
 	}
@@ -152,7 +152,7 @@ func (sdk *SdkEthereum) CreateWithdrawTransaction(fromAddress common.Address, st
 
 	contractAddress := common.HexToAddress(sdk.Config.VaultAddress)
 
-	contractAbi, err := abi.JSON(strings.NewReader(ethereumSavingsDai.EthereumSavingsDaiABI))
+	contractAbi, err := abi.JSON(strings.NewReader(ethereumContracts.SavingsDaiABI))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse contract ABI: %w", err)
 	}

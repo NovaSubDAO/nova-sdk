@@ -84,8 +84,8 @@ func (sdk *SdkEthereum) GetTotalValue() (*big.Int, error) {
 	return totalValueNormalized, nil
 }
 
-func (sdk *SdkEthereum) GetSlippage(amount *big.Int) (*big.Int, error) {
-	return nil, fmt.Errorf("Not yet implemented")
+func (sdk *SdkEthereum) GetSlippage(address common.Address, amount *big.Int) (float64, error) {
+	return float64(0), nil
 }
 
 func (sdk *SdkEthereum) CreateDepositTransaction(fromAddress common.Address, stable common.Address, amount *big.Int, referral *big.Int) (string, error) {

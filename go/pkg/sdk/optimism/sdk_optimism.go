@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/config"
+	"github.com/NovaSubDAO/nova-sdk/go/pkg/constants"
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/contracts"
 	optimismContracts "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/optimism/abis"
 	"github.com/ethereum/go-ethereum"
@@ -83,12 +84,12 @@ func (sdk *SdkOptimism) getPriceFromInput(input optimismContracts.IMixedRouteQuo
 	return result, nil
 }
 
-func (sdk *SdkOptimism) GetPrice() (*big.Int, error) {
-	// Define the parameters for the function call
-	tokenIn := common.HexToAddress("0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85")
-	tokenOut := common.HexToAddress("0x2218a117083f5B482B0bB821d27056Ba9c04b1D3")
-
+func (sdk *SdkOptimism) GetPrice(stable constants.Stablecoin) (*big.Int, error) {
 	// Packing the input arguments
+	stableAddress := constants.StablecoinAddresses[sdk.Config.ChainId][stable]
+	tokenIn := common.HexToAddress(stableAddress)
+	tokenOut := common.HexToAddress(sdk.Config.SDai)
+
 	input := optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV2Params{
 		TokenIn:  tokenIn,
 		TokenOut: tokenOut,
@@ -104,20 +105,20 @@ func (sdk *SdkOptimism) GetPrice() (*big.Int, error) {
 	return result, nil
 }
 
-func (sdk *SdkOptimism) GetPosition(address common.Address) (*big.Int, error) {
+func (sdk *SdkOptimism) GetPosition(stable constants.Stablecoin, address common.Address) (*big.Int, error) {
 	return nil, fmt.Errorf("Not yet implemented")
 }
 
-func (sdk *SdkOptimism) GetTotalValue() (*big.Int, error) {
+func (sdk *SdkOptimism) GetTotalValue(stable constants.Stablecoin) (*big.Int, error) {
 	return nil, fmt.Errorf("Not yet implemented")
 }
 
-func (sdk *SdkOptimism) GetSlippage(stable common.Address, amount *big.Int) (float64, error) {
-	// Define the parameters for the function call
-	tokenIn := common.HexToAddress("0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85")
-	tokenOut := common.HexToAddress("0x2218a117083f5B482B0bB821d27056Ba9c04b1D3")
-
+func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int) (float64, error) {
 	// Packing the input arguments
+	stableAddress := constants.StablecoinAddresses[sdk.Config.ChainId][stable]
+	tokenIn := common.HexToAddress(stableAddress)
+	tokenOut := common.HexToAddress(sdk.Config.SDai)
+
 	input := optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV2Params{
 		TokenIn:  tokenIn,
 		TokenOut: tokenOut,
@@ -142,15 +143,20 @@ func (sdk *SdkOptimism) GetSlippage(stable common.Address, amount *big.Int) (flo
 
 	resultOneFloat := new(big.Float).SetInt(resultOne)
 	resultAmountFloat := new(big.Float).SetInt(resultAmount)
-	amountFloat := new(big.Float).SetInt(amount)
-	resultAmountFloat.Quo(resultAmountFloat, amountFloat)
-	diff := new(big.Float).Sub(resultAmountFloat, resultOneFloat)
-	percentageChange, _ := new(big.Float).Quo(diff, resultOneFloat).Float64()
-
-	return percentageChange, nil
+	if amount == big.NewInt(0) {
+		return float64(0), nil
+	} else {
+		amountFloat := new(big.Float).SetInt(amount)
+		resultAmountFloat.Quo(resultAmountFloat, amountFloat)
+		diff := new(big.Float).Sub(resultAmountFloat, resultOneFloat)
+		percentageChange, _ := new(big.Float).Quo(diff, resultOneFloat).Float64()
+		return percentageChange, nil
+	}
 }
 
-func (sdk *SdkOptimism) CreateDepositTransaction(fromAddress common.Address, stable common.Address, amount *big.Int, referral *big.Int) (string, error) {
+func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
+	stableAddress := constants.StablecoinAddresses[sdk.Config.ChainId][stable]
+
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("Failed to connect to the Optimism client: %v", err)
@@ -174,7 +180,7 @@ func (sdk *SdkOptimism) CreateDepositTransaction(fromAddress common.Address, sta
 	}
 
 	referralUint16 := uint16(referral.Uint64())
-	data, err := contractAbi.Pack("deposit", stable, amount, referralUint16)
+	data, err := contractAbi.Pack("deposit", stableAddress, amount, referralUint16)
 	if err != nil {
 		return "", fmt.Errorf("ABI pack failed: %v", err)
 	}
@@ -197,7 +203,9 @@ func (sdk *SdkOptimism) CreateDepositTransaction(fromAddress common.Address, sta
 	return string(txJSON), nil
 }
 
-func (sdk *SdkOptimism) CreateWithdrawTransaction(fromAddress common.Address, stable common.Address, amount *big.Int, referral *big.Int) (string, error) {
+func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
+	stableAddress := constants.StablecoinAddresses[sdk.Config.ChainId][stable]
+
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("Failed to connect to the Ethereum client: %v", err)
@@ -220,7 +228,7 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(fromAddress common.Address, st
 
 	contractAddress := common.HexToAddress(sdk.Config.VaultAddress)
 
-	data, err := contractAbi.Pack("withdraw", stable, amount)
+	data, err := contractAbi.Pack("withdraw", stableAddress, amount)
 	if err != nil {
 		return "", fmt.Errorf("ABI pack failed: %v", err)
 	}
@@ -230,7 +238,7 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(fromAddress common.Address, st
 	gasLimit, err := client.EstimateGas(context.Background(), msg)
 	if err != nil {
 		log.Printf("Gas estimation failed, using fallback gas limit: %v", err)
-		gasLimit = 2000000 // Fallback gas limit
+		gasLimit = 2000000
 	}
 
 	tx := types.NewTransaction(nonce, contractAddress, big.NewInt(0), gasLimit, gasPrice, data)
@@ -243,10 +251,10 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(fromAddress common.Address, st
 	return string(txJSON), nil
 }
 
-func (sdk *SdkOptimism) Deposit(assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
+func (sdk *SdkOptimism) Deposit(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
 	return nil, fmt.Errorf("Not yet implemented")
 }
 
-func (sdk *SdkOptimism) Withdraw(assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
+func (sdk *SdkOptimism) Withdraw(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
 	return nil, fmt.Errorf("Not yet implemented")
 }

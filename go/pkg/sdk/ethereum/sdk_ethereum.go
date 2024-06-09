@@ -84,7 +84,7 @@ func (sdk *SdkEthereum) GetTotalValue() (*big.Int, error) {
 	return totalValueNormalized, nil
 }
 
-func (sdk *SdkEthereum) GetSlippage(amount *big.Int) (*big.Int, error) {
+func (sdk *SdkEthereum) GetSlippage(address common.Address, amount *big.Int) (*big.Int, error) {
 	return nil, fmt.Errorf("Not yet implemented")
 }
 

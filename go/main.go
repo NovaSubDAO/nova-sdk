@@ -30,7 +30,9 @@ func main() {
 		log.Fatal("Error creating withdraw transaction:", err)
 	}
 	log.Println("withdraw tx:", tx)
-	log.Println(" ")
+	log.Println("----------------------------------------")
+	log.Println("----------------------------------------")
+	log.Println("----------------------------------------")
 
 	// check vault address on optimism
 	log.Println("Nova SDK: Optimism")

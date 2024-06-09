@@ -30,3 +30,13 @@ repos:
         files: ^go
         additional_dependencies: [golang.org/x/tools/cmd/goimports]
         language_version: 1.21.3
+
+  - repo: local
+    hooks:
+      - id: gofmt
+        name: gofmt
+        description: Formats Go code
+        entry: gofmt -s -w
+        language: system
+        types: [go]
+        files: \.go$

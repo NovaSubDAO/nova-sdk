@@ -1,4 +1,19 @@
 CONTRACT ?= SavingsDai
+optimism_artifacts := $(wildcard pkg/sdk/optimism/abis/*.json)
+ethereum_artifacts := $(wildcard pkg/sdk/ethereum/abis/*.json)
 
-compile :; cd pkg/contracts && solc --bin --abi ${CONTRACT}.sol -o build --overwrite && abigen --bin=build/${CONTRACT}.bin --abi=build/${CONTRACT}.abi --pkg=contracts --out=${CONTRACT}.go
+$(optimism_artifacts:.json=.go): %.go : %.json
+	abigen --abi=$< --pkg=optimismContracts --type=$(basename $(notdir $<)) --out=$@
+
+$(ethereum_artifacts:.json=.go): %.go : %.json
+	abigen --abi=$< --pkg=ethereumContracts --type=$(basename $(notdir $<)) --out=$@
+
+build: $(optimism_artifacts:.json=.go) $(ethereum_artifacts:.json=.go)
+
+compile: clean build
+
+clean:
+	rm -f pkg/sdk/optimism/abis/*.go
+	rm -f pkg/sdk/ethereum/abis/*.go
+
 test :; go test github.com/NovaSubDAO/nova-sdk/go/...

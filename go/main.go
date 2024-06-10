@@ -41,6 +41,12 @@ func main() {
 	}
 	log.Println("price:", price)
 	log.Println("----------------------------------------")
+	sDaiPrice, err := novaSdk.SdkDomain.GetSDaiPrice(constants.USDC)
+	if err != nil {
+		log.Fatal("Error getting sDAI price:", err)
+	}
+	log.Println("sDaiPrice:", sDaiPrice)
+	log.Println("----------------------------------------")
 	slippage, err := novaSdk.SdkDomain.GetSlippage(constants.USDC, amount)
 	if err != nil {
 		log.Fatal("Error getting slippage:", err)
@@ -53,7 +59,7 @@ func main() {
 	}
 	log.Println("position:", position)
 	log.Println("----------------------------------------")
-	totalValue, err := novaSdk.SdkDomain.GetTotalValue(constants.USDC)
+	totalValue, err := novaSdk.SdkDomain.GetSDaiTotalValue(constants.USDC)
 	if err != nil {
 		log.Fatal("Error getting total value:", err)
 	}
@@ -91,6 +97,12 @@ func main() {
 	}
 	log.Println("price:", price)
 	log.Println("----------------------------------------")
+	sDaiPrice, err = novaSdk.SdkDomain.GetSDaiPrice(constants.USDC)
+	if err != nil {
+		log.Fatal("Error getting sDAI price:", err)
+	}
+	log.Println("sDaiPrice:", sDaiPrice)
+	log.Println("----------------------------------------")
 	slippage, err = novaSdk.SdkDomain.GetSlippage(constants.USDC, amount)
 	if err != nil {
 		log.Fatal("Error getting slippage:", err)
@@ -103,7 +115,7 @@ func main() {
 	}
 	log.Println("position:", position)
 	log.Println("----------------------------------------")
-	totalValue, err = novaSdk.SdkDomain.GetTotalValue(constants.USDC)
+	totalValue, err = novaSdk.SdkDomain.GetSDaiTotalValue(constants.USDC)
 	if err != nil {
 		log.Fatal("Error getting total value:", err)
 	}

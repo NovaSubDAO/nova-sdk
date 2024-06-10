@@ -131,13 +131,18 @@ func (sdk *SdkOptimism) GetPosition(stable constants.Stablecoin, address common.
 	return valueNormalized, nil
 }
 
-func (sdk *SdkOptimism) GetTotalValue(stable constants.Stablecoin) (*big.Int, error) {
+func (sdk *SdkOptimism) GetSDaiPrice() (*big.Int, error) {
+	return big.NewInt(1e18), nil
+}
+
+
+func (sdk *SdkOptimism) GetSDaiTotalValue() (*big.Int, error) {
 	totalSupply, err := sdk.Contract.TotalSupply(nil)
 	if err != nil {
 		return big.NewInt(0), err
 	}
 
-	price, err := sdk.GetPrice(stable)
+	price, err := sdk.GetSDaiPrice()
 	if err != nil {
 		return big.NewInt(0), err
 	}
@@ -287,10 +292,10 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 	return string(txJSON), nil
 }
 
-func (sdk *SdkOptimism) Deposit(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
-	return nil, fmt.Errorf("Not yet implemented")
-}
+// func (sdk *SdkOptimism) Deposit(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
+// 	return nil, fmt.Errorf("Not yet implemented")
+// }
 
-func (sdk *SdkOptimism) Withdraw(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
-	return nil, fmt.Errorf("Not yet implemented")
-}
+// func (sdk *SdkOptimism) Withdraw(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
+// 	return nil, fmt.Errorf("Not yet implemented")
+// }

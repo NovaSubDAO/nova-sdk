@@ -10,7 +10,6 @@ import (
 
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/config"
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/constants"
-	"github.com/NovaSubDAO/nova-sdk/go/pkg/contracts"
 	ethereumContracts "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/ethereum/abis"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -21,7 +20,7 @@ import (
 
 type SdkEthereum struct {
 	Config   *config.Config
-	Contract *contracts.ContractsCaller
+	Contract *ethereumContracts.SavingsDaiCaller
 }
 
 func NewSdkEthereum(cfg *config.Config) (*SdkEthereum, error) {
@@ -30,7 +29,7 @@ func NewSdkEthereum(cfg *config.Config) (*SdkEthereum, error) {
 		return nil, fmt.Errorf("Failed to connect to Ethereum client: %w", err)
 	}
 
-	contract, err := contracts.NewContractsCaller(common.HexToAddress(cfg.VaultAddress), client)
+	contract, err := ethereumContracts.NewSavingsDaiCaller(common.HexToAddress(cfg.SDai), client)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to instantiate contract caller: %w", err)
 	}
@@ -192,7 +191,7 @@ func (sdk *SdkEthereum) Deposit(stable constants.Stablecoin, assets *big.Int, re
 	// 	return nil, fmt.Errorf("Failed to connect to Ethereum client: %w", err)
 	// }
 
-	// contract, err := contracts.NewContractsCaller(common.HexToAddress(cfg.VaultAddress), client)
+	// contract, err := ethereumContracts.NewContractsCaller(common.HexToAddress(cfg.VaultAddress), client)
 	// if err != nil {
 	// 	return nil, fmt.Errorf("Failed to instantiate contract caller: %w", err)
 	// }

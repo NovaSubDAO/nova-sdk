@@ -1,4 +1,3 @@
-CONTRACT ?= SavingsDai
 optimism_artifacts := $(wildcard pkg/sdk/optimism/abis/*.json)
 ethereum_artifacts := $(wildcard pkg/sdk/ethereum/abis/*.json)
 

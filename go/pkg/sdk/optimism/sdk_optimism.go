@@ -10,7 +10,6 @@ import (
 
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/config"
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/constants"
-	"github.com/NovaSubDAO/nova-sdk/go/pkg/contracts"
 	optimismContracts "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/optimism/abis"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -21,7 +20,7 @@ import (
 
 type SdkOptimism struct {
 	Config   *config.Config
-	Contract *contracts.ContractsCaller
+	Contract *optimismContracts.SavingsDaiCaller
 }
 
 func NewSdkOptimism(cfg *config.Config) (*SdkOptimism, error) {
@@ -30,7 +29,7 @@ func NewSdkOptimism(cfg *config.Config) (*SdkOptimism, error) {
 		return nil, fmt.Errorf("Failed to connect to Optimism client: %w", err)
 	}
 
-	contract, err := contracts.NewContractsCaller(common.HexToAddress(cfg.VaultAddress), client)
+	contract, err := optimismContracts.NewSavingsDaiCaller(common.HexToAddress(cfg.SDai), client)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to instantiate contract caller: %w", err)
 	}
@@ -102,15 +101,52 @@ func (sdk *SdkOptimism) GetPrice(stable constants.Stablecoin) (*big.Int, error) 
 		return nil, fmt.Errorf("Failed to get price from input params: %w", err)
 	}
 
-	return result, nil
+	resultFloat := new(big.Float).SetInt(result)
+	factorFloat := new(big.Float).SetInt(big.NewInt(1e12))
+	decimalsFactorFloat := new(big.Float).SetInt(big.NewInt(1e18))
+	price := new(big.Float).Quo(factorFloat, resultFloat)
+	price.Mul(price, decimalsFactorFloat)
+
+	priceInt := new(big.Int)
+	price.Int(priceInt)
+
+	return priceInt, nil
 }
 
 func (sdk *SdkOptimism) GetPosition(stable constants.Stablecoin, address common.Address) (*big.Int, error) {
-	return nil, fmt.Errorf("Not yet implemented")
+	balance, err := sdk.Contract.BalanceOf(nil, address)
+	if err != nil {
+		return big.NewInt(0), err
+	}
+
+	price, err := sdk.GetPrice(stable)
+	if err != nil {
+		return big.NewInt(0), err
+	}
+
+	value := new(big.Int).Mul(balance, price)
+	factor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(sdk.Config.VaultDecimals)), nil)
+	valueNormalized := new(big.Int).Div(value, factor)
+
+	return valueNormalized, nil
 }
 
 func (sdk *SdkOptimism) GetTotalValue(stable constants.Stablecoin) (*big.Int, error) {
-	return nil, fmt.Errorf("Not yet implemented")
+	totalSupply, err := sdk.Contract.TotalSupply(nil)
+	if err != nil {
+		return big.NewInt(0), err
+	}
+
+	price, err := sdk.GetPrice(stable)
+	if err != nil {
+		return big.NewInt(0), err
+	}
+
+	totalValue := new(big.Int).Mul(totalSupply, price)
+	factor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(sdk.Config.VaultDecimals)), nil)
+	totalValueNormalized := new(big.Int).Div(totalValue, factor)
+
+	return totalValueNormalized, nil
 }
 
 func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int) (float64, error) {
@@ -141,11 +177,11 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 		return 0, fmt.Errorf("Failed to get price from input params: %w", err)
 	}
 
-	resultOneFloat := new(big.Float).SetInt(resultOne)
-	resultAmountFloat := new(big.Float).SetInt(resultAmount)
-	if amount == big.NewInt(0) {
+	if amount == big.NewInt(0) || resultOne == big.NewInt(0) {
 		return float64(0), nil
 	} else {
+		resultOneFloat := new(big.Float).SetInt(resultOne)
+		resultAmountFloat := new(big.Float).SetInt(resultAmount)
 		amountFloat := new(big.Float).SetInt(amount)
 		resultAmountFloat.Quo(resultAmountFloat, amountFloat)
 		diff := new(big.Float).Sub(resultAmountFloat, resultOneFloat)
@@ -155,7 +191,7 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 }
 
 func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
-	stableAddress := constants.StablecoinAddresses[sdk.Config.ChainId][stable]
+	stableAddress := common.HexToAddress(constants.StablecoinAddresses[sdk.Config.ChainId][stable])
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
@@ -174,7 +210,7 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 
 	contractAddress := common.HexToAddress(sdk.Config.VaultAddress)
 
-	contractAbi, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultABI))
+	contractAbi, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultMetaData.ABI))
 	if err != nil {
 		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
 	}
@@ -190,7 +226,7 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 	gasLimit, err := client.EstimateGas(context.Background(), msg)
 	if err != nil {
 		log.Printf("Gas estimation failed, using fallback gas limit: %v", err)
-		gasLimit = 2000000 // Fallback gas limit
+		gasLimit = 2000000
 	}
 
 	tx := types.NewTransaction(nonce, contractAddress, big.NewInt(0), gasLimit, gasPrice, data)
@@ -204,7 +240,7 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 }
 
 func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
-	stableAddress := constants.StablecoinAddresses[sdk.Config.ChainId][stable]
+	stableAddress := common.HexToAddress(constants.StablecoinAddresses[sdk.Config.ChainId][stable])
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
@@ -221,7 +257,7 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
 	}
 
-	contractAbi, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultABI))
+	contractAbi, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultMetaData.ABI))
 	if err != nil {
 		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
 	}

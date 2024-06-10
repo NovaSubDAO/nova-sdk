@@ -5,12 +5,29 @@ The SDK simplifies tasks like depositing, withdrawing, and querying financial da
 
 ## Overview of Functions
 
-This SDK includes the following functions:
+This SDK implements the follow interface:
 
-- **Deposit**: Deposit stablecoins into the NovaVault contract.
-- **Withdraw**: Withdraw stablecoins from the NovaVault contract.
-- **GetPrice**: Retrieve the current price of sDAI in the liquidity pool.
-- **GetSlippage**: Calculate the current slippage percentage for transactions based on the specified amount.
+```go
+type SdkInterface interface {
+	GetPrice(constants.Stablecoin) (*big.Int, error)
+	GetPosition(constants.Stablecoin, common.Address) (*big.Int, error)
+	GetSlippage(constants.Stablecoin, *big.Int) (float64, error)
+
+	GetSDaiPrice() (*big.Int, error)
+	GetSDaiTotalValue() (*big.Int, error)
+
+	CreateDepositTransaction(constants.Stablecoin, common.Address, *big.Int, *big.Int) (string, error)
+	CreateWithdrawTransaction(constants.Stablecoin, common.Address, *big.Int, *big.Int) (string, error)
+}
+```
+- **GetPrice**: Retrieve the current price of sDAI in the liquidity pool stable/sDAI.
+- **GetPosition**: Retrieve the value of the position held by the user.
+- **GetSlippage**: Calculate the current slippage percentage for a swap transaction, based on the specified amount to swap.
+- **GetSDaiPrice**: Retrieve the current price of sDAI on Ethereum.
+- **GetSDaiTotalValue**: Retrieve the total value of sDAI in the domain, using Ethereum price of sDAI.
+- **CreateDepositTransaction**: Creates a deposit transaction with referral code, to be signed by the user.
+- **CreateWithdrawTransaction**: Creates a withdraw transaction with referral code, to be signed by the user.
+
 
 ## Function Details
 

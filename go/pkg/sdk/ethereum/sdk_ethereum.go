@@ -10,7 +10,6 @@ import (
 
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/config"
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/constants"
-	"github.com/NovaSubDAO/nova-sdk/go/pkg/contracts"
 	ethereumContracts "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/ethereum/abis"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
@@ -21,7 +20,7 @@ import (
 
 type SdkEthereum struct {
 	Config   *config.Config
-	Contract *contracts.ContractsCaller
+	Contract *ethereumContracts.SavingsDaiCaller
 }
 
 func NewSdkEthereum(cfg *config.Config) (*SdkEthereum, error) {
@@ -30,7 +29,7 @@ func NewSdkEthereum(cfg *config.Config) (*SdkEthereum, error) {
 		return nil, fmt.Errorf("Failed to connect to Ethereum client: %w", err)
 	}
 
-	contract, err := contracts.NewContractsCaller(common.HexToAddress(cfg.VaultAddress), client)
+	contract, err := ethereumContracts.NewSavingsDaiCaller(common.HexToAddress(cfg.SDai), client)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to instantiate contract caller: %w", err)
 	}
@@ -67,13 +66,17 @@ func (sdk *SdkEthereum) GetPosition(stable constants.Stablecoin, address common.
 	return valueNormalized, nil
 }
 
-func (sdk *SdkEthereum) GetTotalValue(stable constants.Stablecoin) (*big.Int, error) {
+func (sdk *SdkEthereum) GetSDaiPrice() (*big.Int, error) {
+	return big.NewInt(1e18), nil
+}
+
+func (sdk *SdkEthereum) GetSDaiTotalValue() (*big.Int, error) {
 	totalSupply, err := sdk.Contract.TotalSupply(nil)
 	if err != nil {
 		return big.NewInt(0), err
 	}
 
-	price, err := sdk.GetPrice(stable)
+	price, err := sdk.GetSDaiPrice()
 	if err != nil {
 		return big.NewInt(0), err
 	}
@@ -181,25 +184,25 @@ func (sdk *SdkEthereum) CreateWithdrawTransaction(stable constants.Stablecoin, f
 	return string(txJSON), nil
 }
 
-func (sdk *SdkEthereum) Deposit(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
-	// cfg, err := sdk.Config.LoadConfig()
-	// if err != nil {
-	// 	return nil, fmt.Errorf("Error loading configuration: %w", err)
-	// }
+// func (sdk *SdkEthereum) Deposit(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
+// 	// cfg, err := sdk.Config.LoadConfig()
+// 	// if err != nil {
+// 	// 	return nil, fmt.Errorf("Error loading configuration: %w", err)
+// 	// }
 
-	// client, err := ethclient.Dial(cfg.RpcEndpoint)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("Failed to connect to Ethereum client: %w", err)
-	// }
+// 	// client, err := ethclient.Dial(cfg.RpcEndpoint)
+// 	// if err != nil {
+// 	// 	return nil, fmt.Errorf("Failed to connect to Ethereum client: %w", err)
+// 	// }
 
-	// contract, err := contracts.NewContractsCaller(common.HexToAddress(cfg.VaultAddress), client)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("Failed to instantiate contract caller: %w", err)
-	// }
+// 	// contract, err := ethereumContracts.NewContractsCaller(common.HexToAddress(cfg.VaultAddress), client)
+// 	// if err != nil {
+// 	// 	return nil, fmt.Errorf("Failed to instantiate contract caller: %w", err)
+// 	// }
 
-	return nil, fmt.Errorf("Not yet implemented")
-}
+// 	return nil, fmt.Errorf("Not yet implemented")
+// }
 
-func (sdk *SdkEthereum) Withdraw(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
-	return nil, fmt.Errorf("Not yet implemented")
-}
+// func (sdk *SdkEthereum) Withdraw(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
+// 	return nil, fmt.Errorf("Not yet implemented")
+// }

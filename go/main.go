@@ -25,7 +25,7 @@ func main() {
 	referral := big.NewInt(123)
 	tx, err := novaSdk.SdkDomain.CreateDepositTransaction(constants.USDC, common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
 	if err != nil {
-		log.Fatal("Error creating deposit transaction:", err)
+		log.Fatal("Error creating deposit transaction: ", err)
 	}
 	log.Println("deposit tx:", tx)
 	log.Println("----------------------------------------")
@@ -35,11 +35,35 @@ func main() {
 	}
 	log.Println("withdraw tx:", tx)
 	log.Println("----------------------------------------")
+	price, err := novaSdk.SdkDomain.GetPrice(constants.USDC)
+	if err != nil {
+		log.Fatal("Error getting price:", err)
+	}
+	log.Println("price:", price)
+	log.Println("----------------------------------------")
+	sDaiPrice, err := novaSdk.SdkDomain.GetSDaiPrice(constants.USDC)
+	if err != nil {
+		log.Fatal("Error getting sDAI price:", err)
+	}
+	log.Println("sDaiPrice:", sDaiPrice)
+	log.Println("----------------------------------------")
 	slippage, err := novaSdk.SdkDomain.GetSlippage(constants.USDC, amount)
 	if err != nil {
 		log.Fatal("Error getting slippage:", err)
 	}
 	log.Println("slippage:", slippage)
+	log.Println("----------------------------------------")
+	position, err := novaSdk.SdkDomain.GetPosition(constants.USDC, common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"))
+	if err != nil {
+		log.Fatal("Error getting position:", err)
+	}
+	log.Println("position:", position)
+	log.Println("----------------------------------------")
+	totalValue, err := novaSdk.SdkDomain.GetSDaiTotalValue(constants.USDC)
+	if err != nil {
+		log.Fatal("Error getting total value:", err)
+	}
+	log.Println("totalValue:", totalValue)
 	log.Println("----------------------------------------")
 	log.Println("----------------------------------------")
 	log.Println("----------------------------------------")
@@ -67,11 +91,35 @@ func main() {
 	}
 	log.Println("withdraw tx:", tx)
 	log.Println("----------------------------------------")
+	price, err = novaSdk.SdkDomain.GetPrice(constants.USDC)
+	if err != nil {
+		log.Fatal("Error getting price:", err)
+	}
+	log.Println("price:", price)
+	log.Println("----------------------------------------")
+	sDaiPrice, err = novaSdk.SdkDomain.GetSDaiPrice(constants.USDC)
+	if err != nil {
+		log.Fatal("Error getting sDAI price:", err)
+	}
+	log.Println("sDaiPrice:", sDaiPrice)
+	log.Println("----------------------------------------")
 	slippage, err = novaSdk.SdkDomain.GetSlippage(constants.USDC, amount)
 	if err != nil {
 		log.Fatal("Error getting slippage:", err)
 	}
 	log.Println("slippage:", slippage)
+	log.Println("----------------------------------------")
+	position, err = novaSdk.SdkDomain.GetPosition(constants.USDC, common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"))
+	if err != nil {
+		log.Fatal("Error getting position:", err)
+	}
+	log.Println("position:", position)
+	log.Println("----------------------------------------")
+	totalValue, err = novaSdk.SdkDomain.GetSDaiTotalValue(constants.USDC)
+	if err != nil {
+		log.Fatal("Error getting total value:", err)
+	}
+	log.Println("totalValue:", totalValue)
 	log.Println("----------------------------------------")
 	log.Println("----------------------------------------")
 	log.Println("----------------------------------------")

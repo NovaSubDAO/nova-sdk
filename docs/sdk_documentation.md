@@ -248,7 +248,7 @@ func main() {
 }
 ```
 
-### **CreateWithdrawTransaction**
+### CreateWithdrawTransaction
 
 Creates a withdraw transaction for a specified stablecoin to be signed by the user. This function requires the stablecoin type, the user wallet address, the amount to withdraw, and an optional referral code.
 

@@ -38,14 +38,11 @@ func NewSdkEthereum(cfg *config.Config) (*SdkEthereum, error) {
 }
 
 func (sdk *SdkEthereum) GetPrice(stable constants.Stablecoin) (*big.Int, error) {
-	factor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(sdk.Config.VaultDecimals)), nil)
-
-	assets, err := sdk.Contract.ConvertToAssets(nil, factor)
+	price, err := sdk.GetSDaiPrice()
 	if err != nil {
 		return big.NewInt(0), err
 	}
-
-	return assets, nil
+	return price, nil
 }
 
 func (sdk *SdkEthereum) GetPosition(stable constants.Stablecoin, address common.Address) (*big.Int, error) {
@@ -67,7 +64,12 @@ func (sdk *SdkEthereum) GetPosition(stable constants.Stablecoin, address common.
 }
 
 func (sdk *SdkEthereum) GetSDaiPrice() (*big.Int, error) {
-	return big.NewInt(1e18), nil
+	factor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(sdk.Config.VaultDecimals)), nil)
+	assets, err := sdk.Contract.ConvertToAssets(nil, factor)
+	if err != nil {
+		return big.NewInt(0), err
+	}
+	return assets, nil
 }
 
 func (sdk *SdkEthereum) GetSDaiTotalValue() (*big.Int, error) {

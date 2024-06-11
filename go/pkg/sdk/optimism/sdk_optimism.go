@@ -7,10 +7,12 @@ import (
 	"log"
 	"math/big"
 	"strings"
+	"time"
 
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/config"
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/constants"
 	optimismContracts "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/optimism/abis"
+	"github.com/NovaSubDAO/nova-sdk/go/pkg/utils"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -45,40 +47,15 @@ func (sdk *SdkOptimism) getPriceFromInput(input optimismContracts.IMixedRouteQuo
 
 	contractAddress := common.HexToAddress("0xa4ac92a0F54f1a447c55a4082c90742F5E76Df62")
 
-	contractAbi, err := abi.JSON(strings.NewReader(optimismContracts.MixedRouteQuoterV1ABI))
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse contract ABI: %w", err)
-	}
+	quoter, err := optimismContracts.NewMixedRouteQuoterV1Caller(contractAddress, client)
+    if err != nil {
+        return nil, fmt.Errorf("Failed to load MixedRouteQuoterV1 contract: %w", err)
+    }
 
-	data, err := contractAbi.Pack("quoteExactInputSingleV2", input)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to pack arguments: %w", err)
-	}
-
-	// Setting up the call message
-	msg := ethereum.CallMsg{
-		To:   &contractAddress,
-		Data: data,
-	}
-	ctx := context.Background()
-
-	// Making the call
-	output, err := client.CallContract(ctx, msg, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to call contract: %w", err)
-	}
-
-	// Process the output data (this depends on what the function returns)
-	results, err := contractAbi.Unpack("quoteExactInputSingleV2", output)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to unpack function output: %w", err)
-	}
-
-	// Type assert the result as *big.Int
-	result, ok := results[0].(*big.Int)
-	if !ok {
-		return nil, fmt.Errorf("result type assertion to *big.Int failed")
-	}
+	result, err := quoter.QuoteExactInputSingleV2(nil, input)
+    if err != nil {
+		return nil, fmt.Errorf("Failed to call QuoteExactInputSingleV2 function: %w", err)
+    }
 
 	return result, nil
 }
@@ -132,7 +109,32 @@ func (sdk *SdkOptimism) GetPosition(stable constants.Stablecoin, address common.
 }
 
 func (sdk *SdkOptimism) GetSDaiPrice() (*big.Int, error) {
-	return big.NewInt(1e18), nil
+	// Packing the input arguments
+	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("Error loading client: %w", err)
+	}
+
+	contractAddress := common.HexToAddress("0x33a3aB524A43E69f30bFd9Ae97d1Ec679FF00B64")
+
+	oracle, err := optimismContracts.NewDSRAuthOracleCaller(contractAddress, client)
+    if err != nil {
+        return nil, fmt.Errorf("Failed to load DSRAuthOracle contract: %w", err)
+    }
+
+	result, err := oracle.GetPotData(nil)
+    if err != nil {
+		return nil, fmt.Errorf("Failed to call GetPotData function: %w", err)
+    }
+
+    blockTimestamp := big.NewInt(time.Now().Unix())
+	chi := new(big.Int).Div(new(big.Int).Mul(utils.Rpow(result.Dsr, new(big.Int).Sub(blockTimestamp, result.Rho)), result.Chi), utils.RAY)
+
+	factor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(sdk.Config.VaultDecimals)), nil)
+	price := new(big.Int).Div(new(big.Int).Mul(factor, chi), utils.RAY)
+
+
+	return price, nil
 }
 
 

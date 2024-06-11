@@ -5,7 +5,7 @@ import (
 
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/constants"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
+	// "github.com/ethereum/go-ethereum/core/types"
 )
 
 type SdkInterface interface {

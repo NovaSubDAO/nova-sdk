@@ -41,7 +41,7 @@ func main() {
 	}
 	log.Println("price:", price)
 	log.Println("----------------------------------------")
-	sDaiPrice, err := novaSdk.SdkDomain.GetSDaiPrice(constants.USDC)
+	sDaiPrice, err := novaSdk.SdkDomain.GetSDaiPrice()
 	if err != nil {
 		log.Fatal("Error getting sDAI price:", err)
 	}
@@ -59,7 +59,7 @@ func main() {
 	}
 	log.Println("position:", position)
 	log.Println("----------------------------------------")
-	totalValue, err := novaSdk.SdkDomain.GetSDaiTotalValue(constants.USDC)
+	totalValue, err := novaSdk.SdkDomain.GetSDaiTotalValue()
 	if err != nil {
 		log.Fatal("Error getting total value:", err)
 	}
@@ -97,7 +97,7 @@ func main() {
 	}
 	log.Println("price:", price)
 	log.Println("----------------------------------------")
-	sDaiPrice, err = novaSdk.SdkDomain.GetSDaiPrice(constants.USDC)
+	sDaiPrice, err = novaSdk.SdkDomain.GetSDaiPrice()
 	if err != nil {
 		log.Fatal("Error getting sDAI price:", err)
 	}
@@ -115,7 +115,7 @@ func main() {
 	}
 	log.Println("position:", position)
 	log.Println("----------------------------------------")
-	totalValue, err = novaSdk.SdkDomain.GetSDaiTotalValue(constants.USDC)
+	totalValue, err = novaSdk.SdkDomain.GetSDaiTotalValue()
 	if err != nil {
 		log.Fatal("Error getting total value:", err)
 	}

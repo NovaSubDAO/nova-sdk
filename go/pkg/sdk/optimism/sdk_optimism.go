@@ -184,17 +184,21 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 		return 0, fmt.Errorf("Failed to get price from input params: %w", err)
 	}
 
-	if amount == big.NewInt(0) || resultOne == big.NewInt(0) {
-		return float64(0), nil
-	} else {
-		resultOneFloat := new(big.Float).SetInt(resultOne)
-		resultAmountFloat := new(big.Float).SetInt(resultAmount)
-		amountFloat := new(big.Float).SetInt(amount)
-		resultAmountFloat.Quo(resultAmountFloat, amountFloat)
-		diff := new(big.Float).Sub(resultAmountFloat, resultOneFloat)
-		percentageChange, _ := new(big.Float).Quo(diff, resultOneFloat).Float64()
-		return percentageChange, nil
+	if amount.Cmp(big.NewInt(0)) == 0 || resultOne.Cmp(big.NewInt(0)) == 0 {
+		return 0, errors.New("amount or resultOne is zero")
 	}
+
+	resultOneFloat := new(big.Float).SetInt(resultOne)
+	resultAmountFloat := new(big.Float).SetInt(resultAmount)
+	amountFloat := new(big.Float).SetInt(amount)
+	if amountFloat.Cmp(big.NewFloat(0)) == 0 {
+		return 0, errors.New("amount float is zero")
+	}
+
+	resultAmountFloat.Quo(resultAmountFloat, amountFloat)
+	diff := new(big.Float).Sub(resultAmountFloat, resultOneFloat)
+	percentageChange, _ := new(big.Float).Quo(diff, resultOneFloat).Float64()
+	return percentageChange, nil
 }
 
 func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {

@@ -21,7 +21,6 @@ type SdkInterface interface {
 }
 ```
 
-
 ## Function Details
 
 ### GetPrice
@@ -140,7 +139,7 @@ Retrieves the current price of sDAI on Ethereum.
 
 #### Returns
 
-- `price` (*big.Int): The current price of sDAI.
+- `price` (\*big.Int): The current price of sDAI.
 - `error`: Error if the price retrieval fails.
 
 #### Example
@@ -173,7 +172,7 @@ Retrieves the total value of sDAI in the domain, using the Ethereum price of sDA
 
 #### Returns
 
-- `totalValue` (*big.Int): The total value of sDAI.
+- `totalValue` (\*big.Int): The total value of sDAI.
 - `error`: Error if the value retrieval fails.
 
 #### Example

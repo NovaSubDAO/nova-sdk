@@ -48,14 +48,14 @@ func (sdk *SdkOptimism) getPriceFromInput(input optimismContracts.IMixedRouteQuo
 	contractAddress := common.HexToAddress("0xa4ac92a0F54f1a447c55a4082c90742F5E76Df62")
 
 	quoter, err := optimismContracts.NewMixedRouteQuoterV1Caller(contractAddress, client)
-    if err != nil {
-        return nil, fmt.Errorf("Failed to load MixedRouteQuoterV1 contract: %w", err)
-    }
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load MixedRouteQuoterV1 contract: %w", err)
+	}
 
 	result, err := quoter.QuoteExactInputSingleV2(nil, input)
-    if err != nil {
+	if err != nil {
 		return nil, fmt.Errorf("Failed to call QuoteExactInputSingleV2 function: %w", err)
-    }
+	}
 
 	return result, nil
 }
@@ -118,25 +118,23 @@ func (sdk *SdkOptimism) GetSDaiPrice() (*big.Int, error) {
 	contractAddress := common.HexToAddress("0x33a3aB524A43E69f30bFd9Ae97d1Ec679FF00B64")
 
 	oracle, err := optimismContracts.NewDSRAuthOracleCaller(contractAddress, client)
-    if err != nil {
-        return nil, fmt.Errorf("Failed to load DSRAuthOracle contract: %w", err)
-    }
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load DSRAuthOracle contract: %w", err)
+	}
 
 	result, err := oracle.GetPotData(nil)
-    if err != nil {
+	if err != nil {
 		return nil, fmt.Errorf("Failed to call GetPotData function: %w", err)
-    }
+	}
 
-    blockTimestamp := big.NewInt(time.Now().Unix())
+	blockTimestamp := big.NewInt(time.Now().Unix())
 	chi := new(big.Int).Div(new(big.Int).Mul(utils.Rpow(result.Dsr, new(big.Int).Sub(blockTimestamp, result.Rho)), result.Chi), utils.RAY)
 
 	factor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(sdk.Config.VaultDecimals)), nil)
 	price := new(big.Int).Div(new(big.Int).Mul(factor, chi), utils.RAY)
 
-
 	return price, nil
 }
-
 
 func (sdk *SdkOptimism) GetSDaiTotalValue() (*big.Int, error) {
 	totalSupply, err := sdk.Contract.TotalSupply(nil)
@@ -173,29 +171,25 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 		return 0, fmt.Errorf("Failed to get price from input params: %w", err)
 	}
 
-	input = optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV2Params{
-		TokenIn:  tokenIn,
-		TokenOut: tokenOut,
-		Stable:   false,
-		AmountIn: amount,
+	if resultOne.Cmp(big.NewInt(0)) == 0 {
+		return 0, fmt.Errorf("result of one unit of token is zero")
 	}
+
+	input.AmountIn = amount
 	resultAmount, err := sdk.getPriceFromInput(input)
 	if err != nil {
 		return 0, fmt.Errorf("Failed to get price from input params: %w", err)
 	}
 
-	if amount.Cmp(big.NewInt(0)) == 0 || resultOne.Cmp(big.NewInt(0)) == 0 {
-		return 0, errors.New("amount or resultOne is zero")
+	if amount.Cmp(big.NewInt(0)) == 0 || resultAmount.Cmp(big.NewInt(0)) == 0 {
+		return 0, fmt.Errorf("amount or result for the specified amount is zero")
 	}
 
 	resultOneFloat := new(big.Float).SetInt(resultOne)
 	resultAmountFloat := new(big.Float).SetInt(resultAmount)
 	amountFloat := new(big.Float).SetInt(amount)
-	if amountFloat.Cmp(big.NewFloat(0)) == 0 {
-		return 0, errors.New("amount float is zero")
-	}
 
-	resultAmountFloat.Quo(resultAmountFloat, amountFloat)
+	resultAmountFloat.Quo(resultAmountFloat, amountFloat) // This should not panic now as zero checks are done above
 	diff := new(big.Float).Sub(resultAmountFloat, resultOneFloat)
 	percentageChange, _ := new(big.Float).Quo(diff, resultOneFloat).Float64()
 	return percentageChange, nil

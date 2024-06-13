@@ -15,6 +15,7 @@ type SdkInterface interface {
 
 	GetSDaiPrice() (*big.Int, error)
 	GetSDaiTotalValue() (*big.Int, error)
+	GetSupportedStablecoins() ([]constants.Stablecoin, error)
 
 	CreateDepositTransaction(constants.Stablecoin, common.Address, *big.Int, *big.Int) (string, error)
 	CreateWithdrawTransaction(constants.Stablecoin, common.Address, *big.Int, *big.Int) (string, error)
@@ -197,6 +198,39 @@ func main() {
         fmt.Println("Error retrieving total value of sDAI:", err)
     } else {
         fmt.Println("Total value of sDAI:", totalValue)
+    }
+}
+```
+
+### GetSupportedStablecoins
+
+Retrieves the list of supported stablecoins by Nova for the chain id set in configuration.
+
+#### Returns
+
+- `stables` ([]constants.Stablecoin): The list of supported stablecoins for this chain id.
+- `error`: Error if the list retrieval fails.
+
+#### Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk"
+)
+
+func main() {
+    rpcEndpoint := "https://your-rpc-endpoint"
+    chainId := int64(123)
+	novaSdk, err := sdk.NewNovaSDK(rpcEndpoint, chainId)
+
+    stables, err := novaSdk.SdkDomain.GetSupportedStablecoins()
+    if err != nil {
+        fmt.Println("Error retrieving list of stablecoinsI:", err)
+    } else {
+        fmt.Println("List of supported stablecoins:", stables)
     }
 }
 ```

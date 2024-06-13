@@ -15,7 +15,6 @@ import (
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/utils"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	// "github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -38,6 +37,14 @@ func NewSdkOptimism(cfg *config.Config) (*SdkOptimism, error) {
 	}
 
 	return &SdkOptimism{Config: cfg, Contract: contract}, nil
+}
+
+func (sdk *SdkOptimism) isStablecoinSupported(stable constants.Stablecoin) bool {
+	if stablecoins, ok := constants.StablecoinDetails[sdk.Config.ChainId]; ok {
+		_, exists := stablecoins[stable]
+		return exists
+	}
+	return false
 }
 
 func (sdk *SdkOptimism) getPriceFromInput(input optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV3Params) (*big.Int, error) {
@@ -64,6 +71,11 @@ func (sdk *SdkOptimism) getPriceFromInput(input optimismContracts.IMixedRouteQuo
 }
 
 func (sdk *SdkOptimism) GetPrice(stable constants.Stablecoin) (*big.Int, error) {
+	ok := sdk.isStablecoinSupported(stable)
+	if !ok {
+		return big.NewInt(0), fmt.Errorf("stablecoin %s is not supported", stable)
+	}
+
 	// Packing the input arguments
 	stableAddress := constants.StablecoinDetails[sdk.Config.ChainId][stable].Address
 	stableDecimals := constants.StablecoinDetails[sdk.Config.ChainId][stable].Decimals
@@ -99,6 +111,11 @@ func (sdk *SdkOptimism) GetPrice(stable constants.Stablecoin) (*big.Int, error) 
 }
 
 func (sdk *SdkOptimism) GetPosition(stable constants.Stablecoin, address common.Address) (*big.Int, error) {
+	ok := sdk.isStablecoinSupported(stable)
+	if !ok {
+		return big.NewInt(0), fmt.Errorf("stablecoin %s is not supported", stable)
+	}
+
 	balance, err := sdk.Contract.BalanceOf(nil, address)
 	if err != nil {
 		return big.NewInt(0), err
@@ -161,7 +178,23 @@ func (sdk *SdkOptimism) GetSDaiTotalValue() (*big.Int, error) {
 	return totalValueNormalized, nil
 }
 
+func (sdk *SdkOptimism) GetSupportedStablecoins() ([]constants.Stablecoin, error) {
+	if stablecoins, ok := constants.StablecoinDetails[sdk.Config.ChainId]; ok {
+		var supportedStablecoins []constants.Stablecoin
+		for sc := range stablecoins {
+			supportedStablecoins = append(supportedStablecoins, sc)
+		}
+		return supportedStablecoins, nil
+	}
+	return nil, fmt.Errorf("no stablecoins found for chain ID %d", sdk.Config.ChainId)
+}
+
 func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int) (float64, float64, float64, error) {
+	ok := sdk.isStablecoinSupported(stable)
+	if !ok {
+		return 0, 0, 0, fmt.Errorf("stablecoin %s is not supported", stable)
+	}
+
 	// Packing the input arguments
 	stableAddress := constants.StablecoinDetails[sdk.Config.ChainId][stable].Address
 	stableDecimals := constants.StablecoinDetails[sdk.Config.ChainId][stable].Decimals
@@ -232,6 +265,11 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 }
 
 func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
+	ok := sdk.isStablecoinSupported(stable)
+	if !ok {
+		return "", fmt.Errorf("stablecoin %s is not supported", stable)
+	}
+
 	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
@@ -281,6 +319,11 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 }
 
 func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
+	ok := sdk.isStablecoinSupported(stable)
+	if !ok {
+		return "", fmt.Errorf("stablecoin %s is not supported", stable)
+	}
+
 	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
@@ -327,11 +370,3 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 
 	return string(txJSON), nil
 }
-
-// func (sdk *SdkOptimism) Deposit(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
-// 	return nil, fmt.Errorf("Not yet implemented")
-// }
-
-// func (sdk *SdkOptimism) Withdraw(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
-// 	return nil, fmt.Errorf("Not yet implemented")
-// }

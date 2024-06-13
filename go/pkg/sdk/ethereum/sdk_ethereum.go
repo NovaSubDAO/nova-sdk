@@ -90,8 +90,24 @@ func (sdk *SdkEthereum) GetSDaiTotalValue() (*big.Int, error) {
 	return totalValueNormalized, nil
 }
 
-func (sdk *SdkEthereum) GetSlippage(stable constants.Stablecoin, amount *big.Int) (float64, error) {
-	return float64(0), nil
+func (sdk *SdkEthereum) GetSlippage(stable constants.Stablecoin, amount *big.Int) (float64, float64, float64, error) {
+	price, err := sdk.GetSDaiPrice()
+	if err != nil {
+		return 0, 0, 0, err
+	}
+
+	sDaiDecimals := sdk.Config.VaultDecimals
+	base := big.NewInt(10)
+
+	sDaiTenPow := new(big.Int).Exp(base, big.NewInt(int64(sDaiDecimals)), nil)
+	sDaiTenPowFloat := new(big.Float).SetInt(sDaiTenPow)
+
+	priceFloat := new(big.Float).SetInt(price)
+	priceFloat.Quo(priceFloat, sDaiTenPowFloat)
+
+	priceFloat64, _ := priceFloat.Float64()
+
+	return float64(0), priceFloat64, priceFloat64, nil
 }
 
 func (sdk *SdkEthereum) CreateDepositTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {

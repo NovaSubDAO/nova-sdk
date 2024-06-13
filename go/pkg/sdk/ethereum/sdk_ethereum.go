@@ -37,7 +37,20 @@ func NewSdkEthereum(cfg *config.Config) (*SdkEthereum, error) {
 	return &SdkEthereum{Config: cfg, Contract: contract}, nil
 }
 
+func (sdk *SdkEthereum) isStablecoinSupported(stable constants.Stablecoin) bool {
+	if stablecoins, ok := constants.StablecoinDetails[sdk.Config.ChainId]; ok {
+		_, exists := stablecoins[stable]
+		return exists
+	}
+	return false
+}
+
 func (sdk *SdkEthereum) GetPrice(stable constants.Stablecoin) (*big.Int, error) {
+	ok := sdk.isStablecoinSupported(stable)
+	if !ok {
+		return big.NewInt(0), fmt.Errorf("stablecoin %s is not supported", stable)
+	}
+
 	price, err := sdk.GetSDaiPrice()
 	if err != nil {
 		return big.NewInt(0), err
@@ -46,6 +59,11 @@ func (sdk *SdkEthereum) GetPrice(stable constants.Stablecoin) (*big.Int, error) 
 }
 
 func (sdk *SdkEthereum) GetPosition(stable constants.Stablecoin, address common.Address) (*big.Int, error) {
+	ok := sdk.isStablecoinSupported(stable)
+	if !ok {
+		return big.NewInt(0), fmt.Errorf("stablecoin %s is not supported", stable)
+	}
+
 	balance, err := sdk.Contract.BalanceOf(nil, address)
 	if err != nil {
 		return big.NewInt(0), err
@@ -90,7 +108,23 @@ func (sdk *SdkEthereum) GetSDaiTotalValue() (*big.Int, error) {
 	return totalValueNormalized, nil
 }
 
+func (sdk *SdkEthereum) GetSupportedStablecoins() ([]constants.Stablecoin, error) {
+	if stablecoins, ok := constants.StablecoinDetails[sdk.Config.ChainId]; ok {
+		var supportedStablecoins []constants.Stablecoin
+		for sc := range stablecoins {
+			supportedStablecoins = append(supportedStablecoins, sc)
+		}
+		return supportedStablecoins, nil
+	}
+	return nil, fmt.Errorf("no stablecoins found for chain ID %d", sdk.Config.ChainId)
+}
+
 func (sdk *SdkEthereum) GetSlippage(stable constants.Stablecoin, amount *big.Int) (float64, float64, float64, error) {
+	ok := sdk.isStablecoinSupported(stable)
+	if !ok {
+		return 0, 0, 0, fmt.Errorf("stablecoin %s is not supported", stable)
+	}
+
 	price, err := sdk.GetSDaiPrice()
 	if err != nil {
 		return 0, 0, 0, err
@@ -111,6 +145,11 @@ func (sdk *SdkEthereum) GetSlippage(stable constants.Stablecoin, amount *big.Int
 }
 
 func (sdk *SdkEthereum) CreateDepositTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
+	ok := sdk.isStablecoinSupported(stable)
+	if !ok {
+		return "", fmt.Errorf("stablecoin %s is not supported", stable)
+	}
+
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("Failed to connect to the Ethereum client: %v", err)
@@ -157,6 +196,11 @@ func (sdk *SdkEthereum) CreateDepositTransaction(stable constants.Stablecoin, fr
 }
 
 func (sdk *SdkEthereum) CreateWithdrawTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
+	ok := sdk.isStablecoinSupported(stable)
+	if !ok {
+		return "", fmt.Errorf("stablecoin %s is not supported", stable)
+	}
+
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("Failed to connect to the Ethereum client: %v", err)
@@ -201,26 +245,3 @@ func (sdk *SdkEthereum) CreateWithdrawTransaction(stable constants.Stablecoin, f
 
 	return string(txJSON), nil
 }
-
-// func (sdk *SdkEthereum) Deposit(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
-// 	// cfg, err := sdk.Config.LoadConfig()
-// 	// if err != nil {
-// 	// 	return nil, fmt.Errorf("Error loading configuration: %w", err)
-// 	// }
-
-// 	// client, err := ethclient.Dial(cfg.RpcEndpoint)
-// 	// if err != nil {
-// 	// 	return nil, fmt.Errorf("Failed to connect to Ethereum client: %w", err)
-// 	// }
-
-// 	// contract, err := ethereumContracts.NewContractsCaller(common.HexToAddress(cfg.VaultAddress), client)
-// 	// if err != nil {
-// 	// 	return nil, fmt.Errorf("Failed to instantiate contract caller: %w", err)
-// 	// }
-
-// 	return nil, fmt.Errorf("Not yet implemented")
-// }
-
-// func (sdk *SdkEthereum) Withdraw(stable constants.Stablecoin, assets *big.Int, receiver common.Address, referral big.Int) (*types.Transaction, error) {
-// 	return nil, fmt.Errorf("Not yet implemented")
-// }

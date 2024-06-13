@@ -23,19 +23,19 @@ func main() {
 	log.Println("----------------------------------------")
 	amount := big.NewInt(1e3)
 	referral := big.NewInt(123)
-	tx, err := novaSdk.SdkDomain.CreateDepositTransaction(constants.USDC, common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
+	tx, err := novaSdk.SdkDomain.CreateDepositTransaction(constants.DAI, common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
 	if err != nil {
 		log.Fatal("Error creating deposit transaction: ", err)
 	}
 	log.Println("deposit tx:", tx)
 	log.Println("----------------------------------------")
-	tx, err = novaSdk.SdkDomain.CreateWithdrawTransaction(constants.USDC, common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
+	tx, err = novaSdk.SdkDomain.CreateWithdrawTransaction(constants.DAI, common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"), amount, referral)
 	if err != nil {
 		log.Fatal("Error creating withdraw transaction:", err)
 	}
 	log.Println("withdraw tx:", tx)
 	log.Println("----------------------------------------")
-	price, err := novaSdk.SdkDomain.GetPrice(constants.USDC)
+	price, err := novaSdk.SdkDomain.GetPrice(constants.DAI)
 	if err != nil {
 		log.Fatal("Error getting price: ", err)
 	}
@@ -47,7 +47,7 @@ func main() {
 	}
 	log.Println("sDaiPrice:", sDaiPrice)
 	log.Println("----------------------------------------")
-	slippage, expectedPrice, executedPrice, err := novaSdk.SdkDomain.GetSlippage(constants.USDC, amount)
+	slippage, expectedPrice, executedPrice, err := novaSdk.SdkDomain.GetSlippage(constants.DAI, amount)
 	if err != nil {
 		log.Fatal("Error getting slippage:", err)
 	}
@@ -55,7 +55,7 @@ func main() {
 	log.Println("expectedPrice:", expectedPrice)
 	log.Println("executedPrice:", executedPrice)
 	log.Println("----------------------------------------")
-	position, err := novaSdk.SdkDomain.GetPosition(constants.USDC, common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"))
+	position, err := novaSdk.SdkDomain.GetPosition(constants.DAI, common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"))
 	if err != nil {
 		log.Fatal("Error getting position:", err)
 	}
@@ -66,6 +66,12 @@ func main() {
 		log.Fatal("Error getting total value:", err)
 	}
 	log.Println("totalValue:", totalValue)
+	log.Println("----------------------------------------")
+	stables, err := novaSdk.SdkDomain.GetSupportedStablecoins()
+	if err != nil {
+		log.Fatal("Error getting supported stablecoins:", err)
+	}
+	log.Println("stables:", stables)
 	log.Println("----------------------------------------")
 	log.Println("----------------------------------------")
 	log.Println("----------------------------------------")
@@ -125,6 +131,12 @@ func main() {
 		log.Fatal("Error getting total value:", err)
 	}
 	log.Println("totalValue:", totalValue)
+	log.Println("----------------------------------------")
+	stables, err = novaSdk.SdkDomain.GetSupportedStablecoins()
+	if err != nil {
+		log.Fatal("Error getting supported stablecoins:", err)
+	}
+	log.Println("stables:", stables)
 	log.Println("----------------------------------------")
 	log.Println("----------------------------------------")
 	log.Println("----------------------------------------")

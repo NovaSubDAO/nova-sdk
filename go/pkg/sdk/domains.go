@@ -5,7 +5,6 @@ import (
 
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/constants"
 	"github.com/ethereum/go-ethereum/common"
-	// "github.com/ethereum/go-ethereum/core/types"
 )
 
 type SdkInterface interface {
@@ -15,10 +14,8 @@ type SdkInterface interface {
 
 	GetSDaiPrice() (*big.Int, error)
 	GetSDaiTotalValue() (*big.Int, error)
+	GetSupportedStablecoins() ([]constants.Stablecoin, error)
 
 	CreateDepositTransaction(constants.Stablecoin, common.Address, *big.Int, *big.Int) (string, error)
 	CreateWithdrawTransaction(constants.Stablecoin, common.Address, *big.Int, *big.Int) (string, error)
-
-	// Deposit(constants.Stablecoin, *big.Int, common.Address, big.Int) (*types.Transaction, error)
-	// Withdraw(constants.Stablecoin, *big.Int, common.Address, big.Int) (*types.Transaction, error)
 }

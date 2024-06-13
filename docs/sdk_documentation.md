@@ -11,7 +11,7 @@ This SDK implements the follow interface:
 type SdkInterface interface {
 	GetPrice(constants.Stablecoin) (*big.Int, error)
 	GetPosition(constants.Stablecoin, common.Address) (*big.Int, error)
-	GetSlippage(constants.Stablecoin, *big.Int) (float64, error)
+	GetSlippage(constants.Stablecoin, *big.Int) (float64, float64, float64, error)
 
 	GetSDaiPrice() (*big.Int, error)
 	GetSDaiTotalValue() (*big.Int, error)
@@ -100,11 +100,13 @@ Calculates the current slippage percentage for a swap transaction based on the s
 #### Parameters
 
 - `stablecoin` (`constants.Stablecoin`): The type of stablecoin involved in the swap.
-- `amount` (`*big.Int`): The amount of stablecoin to be swapped.
+- `amount` (`*big.Int`): The amount of stablecoin to be swapped. This amount is raw and should use the correct number of decimals.
 
 #### Returns
 
 - `slippage` (`float64`): The calculated slippage percentage.
+- `expectedPrice` (`float64`): The expected price when depositing 1 stablecoin (i.e. an amount of 10 \*\* decimals).
+- `executedPrice` (`float64`): The executed price when deposoting amount.
 - `error`: Error if the slippage calculation fails.
 
 #### Example

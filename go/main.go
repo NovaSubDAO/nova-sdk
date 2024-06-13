@@ -37,7 +37,7 @@ func main() {
 	log.Println("----------------------------------------")
 	price, err := novaSdk.SdkDomain.GetPrice(constants.USDC)
 	if err != nil {
-		log.Fatal("Error getting price:", err)
+		log.Fatal("Error getting price: ", err)
 	}
 	log.Println("price:", price)
 	log.Println("----------------------------------------")
@@ -47,11 +47,13 @@ func main() {
 	}
 	log.Println("sDaiPrice:", sDaiPrice)
 	log.Println("----------------------------------------")
-	slippage, err := novaSdk.SdkDomain.GetSlippage(constants.USDC, amount)
+	slippage, expectedPrice, executedPrice, err := novaSdk.SdkDomain.GetSlippage(constants.USDC, amount)
 	if err != nil {
 		log.Fatal("Error getting slippage:", err)
 	}
 	log.Println("slippage:", slippage)
+	log.Println("expectedPrice:", expectedPrice)
+	log.Println("executedPrice:", executedPrice)
 	log.Println("----------------------------------------")
 	position, err := novaSdk.SdkDomain.GetPosition(constants.USDC, common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"))
 	if err != nil {
@@ -93,7 +95,7 @@ func main() {
 	log.Println("----------------------------------------")
 	price, err = novaSdk.SdkDomain.GetPrice(constants.USDC)
 	if err != nil {
-		log.Fatal("Error getting price:", err)
+		log.Fatal("Error getting price: ", err)
 	}
 	log.Println("price:", price)
 	log.Println("----------------------------------------")
@@ -103,11 +105,14 @@ func main() {
 	}
 	log.Println("sDaiPrice:", sDaiPrice)
 	log.Println("----------------------------------------")
-	slippage, err = novaSdk.SdkDomain.GetSlippage(constants.USDC, amount)
+	slippageAmount := big.NewInt(1e10)
+	slippage, expectedPrice, executedPrice, err = novaSdk.SdkDomain.GetSlippage(constants.USDC, slippageAmount)
 	if err != nil {
 		log.Fatal("Error getting slippage:", err)
 	}
 	log.Println("slippage:", slippage)
+	log.Println("expectedPrice:", expectedPrice)
+	log.Println("executedPrice:", executedPrice)
 	log.Println("----------------------------------------")
 	position, err = novaSdk.SdkDomain.GetPosition(constants.USDC, common.HexToAddress("0x83F20F44975D03b1b09e64809B757c47f942BEeA"))
 	if err != nil {

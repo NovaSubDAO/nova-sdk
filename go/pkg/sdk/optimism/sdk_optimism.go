@@ -15,6 +15,7 @@ import (
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/utils"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	// "github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -39,38 +40,45 @@ func NewSdkOptimism(cfg *config.Config) (*SdkOptimism, error) {
 	return &SdkOptimism{Config: cfg, Contract: contract}, nil
 }
 
-func (sdk *SdkOptimism) getPriceFromInput(input optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV2Params) (*big.Int, error) {
+func (sdk *SdkOptimism) getPriceFromInput(input optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV3Params) (*big.Int, error) {
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading client: %w", err)
 	}
 
 	contractAddress := common.HexToAddress("0xa4ac92a0F54f1a447c55a4082c90742F5E76Df62")
-
-	quoter, err := optimismContracts.NewMixedRouteQuoterV1Caller(contractAddress, client)
+	quoter, err := optimismContracts.NewMixedRouteQuoterV1(contractAddress, client)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load MixedRouteQuoterV1 contract: %w", err)
 	}
 
-	result, err := quoter.QuoteExactInputSingleV2(nil, input)
+	var output []interface{}
+	rawCaller := &optimismContracts.MixedRouteQuoterV1Raw{Contract: quoter}
+	err = rawCaller.Call(nil, &output, "quoteExactInputSingleV3", input)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to call QuoteExactInputSingleV2 function: %w", err)
+		return nil, fmt.Errorf("Failed to call quoteExactInputSingleV3 function: %w", err)
 	}
+	amountOut := output[0].(*big.Int)
 
-	return result, nil
+	return amountOut, nil
 }
 
 func (sdk *SdkOptimism) GetPrice(stable constants.Stablecoin) (*big.Int, error) {
 	// Packing the input arguments
-	stableAddress := constants.StablecoinAddresses[sdk.Config.ChainId][stable]
+	stableAddress := constants.StablecoinDetails[sdk.Config.ChainId][stable].Address
+	stableDecimals := constants.StablecoinDetails[sdk.Config.ChainId][stable].Decimals
 	tokenIn := common.HexToAddress(stableAddress)
 	tokenOut := common.HexToAddress(sdk.Config.SDai)
 
-	input := optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV2Params{
-		TokenIn:  tokenIn,
-		TokenOut: tokenOut,
-		Stable:   false,
-		AmountIn: big.NewInt(1),
+	base := big.NewInt(10)
+	one := new(big.Int).Exp(base, big.NewInt(int64(stableDecimals)), nil)
+
+	input := optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV3Params{
+		TokenIn:           tokenIn,
+		TokenOut:          tokenOut,
+		AmountIn:          one,
+		TickSpacing:       big.NewInt(1),
+		SqrtPriceLimitX96: big.NewInt(0),
 	}
 
 	result, err := sdk.getPriceFromInput(input)
@@ -116,7 +124,6 @@ func (sdk *SdkOptimism) GetSDaiPrice() (*big.Int, error) {
 	}
 
 	contractAddress := common.HexToAddress("0x33a3aB524A43E69f30bFd9Ae97d1Ec679FF00B64")
-
 	oracle, err := optimismContracts.NewDSRAuthOracleCaller(contractAddress, client)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load DSRAuthOracle contract: %w", err)
@@ -154,49 +161,78 @@ func (sdk *SdkOptimism) GetSDaiTotalValue() (*big.Int, error) {
 	return totalValueNormalized, nil
 }
 
-func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int) (float64, error) {
+func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int) (float64, float64, float64, error) {
 	// Packing the input arguments
-	stableAddress := constants.StablecoinAddresses[sdk.Config.ChainId][stable]
+	stableAddress := constants.StablecoinDetails[sdk.Config.ChainId][stable].Address
+	stableDecimals := constants.StablecoinDetails[sdk.Config.ChainId][stable].Decimals
+	sDaiDecimals := sdk.Config.VaultDecimals
 	tokenIn := common.HexToAddress(stableAddress)
 	tokenOut := common.HexToAddress(sdk.Config.SDai)
 
-	input := optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV2Params{
-		TokenIn:  tokenIn,
-		TokenOut: tokenOut,
-		Stable:   false,
-		AmountIn: big.NewInt(1),
+	base := big.NewInt(10)
+	one := new(big.Int).Exp(base, big.NewInt(int64(stableDecimals)), nil)
+
+	input := optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV3Params{
+		TokenIn:           tokenIn,
+		TokenOut:          tokenOut,
+		AmountIn:          one,
+		TickSpacing:       big.NewInt(1),
+		SqrtPriceLimitX96: big.NewInt(0),
 	}
 	resultOne, err := sdk.getPriceFromInput(input)
 	if err != nil {
-		return 0, fmt.Errorf("Failed to get price from input params: %w", err)
+		return 0, 0, 0, fmt.Errorf("Failed to get price from input params: %w", err)
 	}
 
 	if resultOne.Cmp(big.NewInt(0)) == 0 {
-		return 0, fmt.Errorf("result of one unit of token is zero")
+		return 0, 0, 0, fmt.Errorf("result of one unit of token is zero")
 	}
+
+	stableTenPow := new(big.Int).Exp(base, big.NewInt(int64(stableDecimals)), nil)
+	sDaiTenPow := new(big.Int).Exp(base, big.NewInt(int64(sDaiDecimals)), nil)
+	stableTenPowFloat := new(big.Float).SetInt(stableTenPow)
+	sDaiTenPowFloat := new(big.Float).SetInt(sDaiTenPow)
+
+	oneFloat := new(big.Float).SetInt(one)
+	oneFloat.Quo(oneFloat, stableTenPowFloat)
+
+	resultOneFloat := new(big.Float).SetInt(resultOne)
+	resultOneFloat.Quo(resultOneFloat, sDaiTenPowFloat)
+
+	expectedPrice := new(big.Float).Quo(oneFloat, resultOneFloat)
 
 	input.AmountIn = amount
 	resultAmount, err := sdk.getPriceFromInput(input)
 	if err != nil {
-		return 0, fmt.Errorf("Failed to get price from input params: %w", err)
+		return 0, 0, 0, fmt.Errorf("Failed to get price from input params: %w", err)
 	}
 
 	if amount.Cmp(big.NewInt(0)) == 0 || resultAmount.Cmp(big.NewInt(0)) == 0 {
-		return 0, fmt.Errorf("amount or result for the specified amount is zero")
+		return 0, 0, 0, fmt.Errorf("amount or result for the specified amount is zero")
 	}
 
-	resultOneFloat := new(big.Float).SetInt(resultOne)
-	resultAmountFloat := new(big.Float).SetInt(resultAmount)
 	amountFloat := new(big.Float).SetInt(amount)
+	amountFloat.Quo(amountFloat, stableTenPowFloat)
 
-	resultAmountFloat.Quo(resultAmountFloat, amountFloat) // This should not panic now as zero checks are done above
-	diff := new(big.Float).Sub(resultAmountFloat, resultOneFloat)
-	percentageChange, _ := new(big.Float).Quo(diff, resultOneFloat).Float64()
-	return percentageChange, nil
+	resultAmountFloat := new(big.Float).SetInt(resultAmount)
+	resultAmountFloat.Quo(resultAmountFloat, sDaiTenPowFloat)
+
+	executedPrice := new(big.Float).Quo(amountFloat, resultAmountFloat)
+
+	num := new(big.Float).Sub(executedPrice, expectedPrice)
+	den := expectedPrice
+
+	percentageChange, _ := new(big.Float).Quo(num, den).Float64()
+	percentageChange *= 100
+
+	expectedPriceFloat, _ := expectedPrice.Float64()
+	executedPriceFloat, _ := executedPrice.Float64()
+
+	return percentageChange, expectedPriceFloat, executedPriceFloat, nil
 }
 
 func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
-	stableAddress := common.HexToAddress(constants.StablecoinAddresses[sdk.Config.ChainId][stable])
+	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
@@ -245,7 +281,7 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 }
 
 func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
-	stableAddress := common.HexToAddress(constants.StablecoinAddresses[sdk.Config.ChainId][stable])
+	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {

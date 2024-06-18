@@ -7,8 +7,8 @@ on:
   pull_request:
 
 env:
-  RPC_ENDPOINT: ${{ secrets.RPC_ENDPOINT }}
-  CHAIN_ID: ${{ secrets.CHAIN_ID }}
+  ETH_RPC_ENDPOINT: ${{ secrets.ETH_RPC_ENDPOINT }}
+  OPT_RPC_ENDPOINT: ${{ secrets.OPT_RPC_ENDPOINT }}
 
 jobs:
   test:

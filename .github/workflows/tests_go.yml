@@ -8,6 +8,7 @@ on:
 
 env:
   RPC_ENDPOINT: ${{ secrets.RPC_ENDPOINT }}
+  CHAIN_ID: ${{ secrets.CHAIN_ID }}
 
 jobs:
   test:

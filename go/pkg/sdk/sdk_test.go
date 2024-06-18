@@ -121,9 +121,8 @@ func TestSdkGetPrice(t *testing.T) {
 	price, err := novaSdk.SdkDomain.GetPrice(constants.USDC)
 	assert.NoError(t, err)
 
-	// TODO: fix GetPrice function and return price with stablecoin decimals
-	lowerBound := big.NewInt(1e12)
-	upperBound := big.NewInt(2e12)
+	lowerBound := big.NewInt(1e6)
+	upperBound := big.NewInt(2e6)
 
 	assert.True(t, price.Cmp(lowerBound) >= 0, "Price should be at least 1e18")
 	assert.True(t, price.Cmp(upperBound) <= 0, "Price should be at most 2e18")

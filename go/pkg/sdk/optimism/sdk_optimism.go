@@ -99,8 +99,8 @@ func (sdk *SdkOptimism) GetPrice(stable constants.Stablecoin) (*big.Int, error) 
 	}
 
 	resultFloat := new(big.Float).SetInt(result)
-	factorFloat := new(big.Float).SetInt(big.NewInt(1e12))
-	decimalsFactorFloat := new(big.Float).SetInt(big.NewInt(1e18))
+	factorFloat := new(big.Float).SetInt(big.NewInt(1e18))
+	decimalsFactorFloat := new(big.Float).SetInt(one)
 	price := new(big.Float).Quo(factorFloat, resultFloat)
 	price.Mul(price, decimalsFactorFloat)
 

@@ -150,9 +150,26 @@ func (sdk *SdkEthereum) CreateDepositTransaction(stable constants.Stablecoin, fr
 		return "", fmt.Errorf("stablecoin %s is not supported", stable)
 	}
 
+	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
+	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
+
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("Failed to connect to the Ethereum client: %v", err)
+	}
+
+	stableContract, err := ethereumContracts.NewDaiCaller(stableAddress, client)
+	if err != nil {
+		return "", fmt.Errorf("Failed to load Dai contract: %w", err)
+	}
+
+	result, err := stableContract.Allowance(nil, fromAddress, vaultAddress)
+	if err != nil {
+		return "", fmt.Errorf("Failed to call Allowance function: %w", err)
+	}
+
+	if amount.Cmp(result) > 0 {
+		return "", fmt.Errorf("Allowance is too low. First call approve function on DAI contract.")
 	}
 
 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
@@ -165,8 +182,6 @@ func (sdk *SdkEthereum) CreateDepositTransaction(stable constants.Stablecoin, fr
 		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
 	}
 
-	contractAddress := common.HexToAddress(sdk.Config.VaultAddress)
-
 	contractAbi, err := abi.JSON(strings.NewReader(ethereumContracts.SavingsDaiABI))
 	if err != nil {
 		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
@@ -178,14 +193,14 @@ func (sdk *SdkEthereum) CreateDepositTransaction(stable constants.Stablecoin, fr
 	}
 
 	// Estimating the gas needed for the transaction
-	call := ethereum.CallMsg{From: fromAddress, To: &contractAddress, GasPrice: gasPrice, Value: big.NewInt(0), Data: data}
+	call := ethereum.CallMsg{From: fromAddress, To: &vaultAddress, GasPrice: gasPrice, Value: big.NewInt(0), Data: data}
 	gasLimit, err := client.EstimateGas(context.Background(), call)
 	if err != nil {
 		log.Printf("Gas estimation failed, using fallback gas limit: %v", err)
 		gasLimit = 2000000 // Fallback gas limit
 	}
 
-	tx := types.NewTransaction(nonce, contractAddress, big.NewInt(0), gasLimit, gasPrice, data)
+	tx := types.NewTransaction(nonce, vaultAddress, big.NewInt(0), gasLimit, gasPrice, data)
 
 	txJSON, err := json.Marshal(tx)
 	if err != nil {
@@ -206,6 +221,22 @@ func (sdk *SdkEthereum) CreateWithdrawTransaction(stable constants.Stablecoin, f
 		return "", fmt.Errorf("Failed to connect to the Ethereum client: %v", err)
 	}
 
+	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
+
+	sDaiContract, err := ethereumContracts.NewSavingsDaiCaller(vaultAddress, client)
+	if err != nil {
+		return "", fmt.Errorf("Failed to load SavingsDai contract: %w", err)
+	}
+
+	result, err := sDaiContract.Allowance(nil, fromAddress, vaultAddress)
+	if err != nil {
+		return "", fmt.Errorf("Failed to call Allowance function: %w", err)
+	}
+
+	if amount.Cmp(result) > 0 {
+		return "", fmt.Errorf("Allowance is too low. First call approve function on sDai contract.")
+	}
+
 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
 	if err != nil {
 		return "", fmt.Errorf("Failed to get nonce: %v", err)
@@ -215,8 +246,6 @@ func (sdk *SdkEthereum) CreateWithdrawTransaction(stable constants.Stablecoin, f
 	if err != nil {
 		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
 	}
-
-	contractAddress := common.HexToAddress(sdk.Config.VaultAddress)
 
 	contractAbi, err := abi.JSON(strings.NewReader(ethereumContracts.SavingsDaiABI))
 	if err != nil {
@@ -229,14 +258,14 @@ func (sdk *SdkEthereum) CreateWithdrawTransaction(stable constants.Stablecoin, f
 	}
 
 	// Estimating the gas needed for the transaction
-	call := ethereum.CallMsg{From: fromAddress, To: &contractAddress, GasPrice: gasPrice, Value: big.NewInt(0), Data: data}
+	call := ethereum.CallMsg{From: fromAddress, To: &vaultAddress, GasPrice: gasPrice, Value: big.NewInt(0), Data: data}
 	gasLimit, err := client.EstimateGas(context.Background(), call)
 	if err != nil {
 		log.Printf("Gas estimation failed, using fallback gas limit: %v", err)
 		gasLimit = 2000000 // Fallback gas limit
 	}
 
-	tx := types.NewTransaction(nonce, contractAddress, big.NewInt(0), gasLimit, gasPrice, data)
+	tx := types.NewTransaction(nonce, vaultAddress, big.NewInt(0), gasLimit, gasPrice, data)
 
 	txJSON, err := json.Marshal(tx)
 	if err != nil {

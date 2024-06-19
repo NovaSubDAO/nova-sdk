@@ -2,6 +2,7 @@ package sdk
 
 import (
 	// "encoding/json"
+	"fmt"
 	"math/big"
 	"os"
 	"strconv"
@@ -63,77 +64,79 @@ func TestSdkConfigDetails(t *testing.T) {
 	}
 }
 
-// func TestSdkCreateDepositTx(t *testing.T) {
-// 	for _, tc := range testCases {
-// 		t.Run("ChainID: "+strconv.FormatInt(tc.chainId, 10), func(t *testing.T) {
-// 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
-// 			assert.NoError(t, err)
+func TestSdkCreateDepositTx(t *testing.T) {
+	for _, tc := range testCases {
+		t.Run("ChainID: "+strconv.FormatInt(tc.chainId, 10), func(t *testing.T) {
+			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
+			assert.NoError(t, err)
 
-// 			mockAmount := big.NewInt(1e3)
-// 			mockReferral := big.NewInt(123)
-// 			txJSON, err := novaSdk.SdkDomain.CreateDepositTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
-// 			assert.NoError(t, err)
+			mockAmount := big.NewInt(1e3)
+			mockReferral := big.NewInt(123)
+			_, err = novaSdk.SdkDomain.CreateDepositTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
+			expectedErrorMessage := fmt.Sprintf("Allowance is too low. First call approve function on %s contract.", tc.stable)
+			assert.Equal(t, expectedErrorMessage, err.Error())
 
-// 			var expectedTxJSON string
-// 			if tc.chainId == 1 {
-// 				expectedTxJSON = `{"type":"0x0","nonce":"0x2d","to":"0x83f20f44975d03b1b09e64809b757c47f942beea","gas":"0x1e8480","maxPriorityFeePerGas":null,"maxFeePerGas":null,"value":"0x0","input":"0x6e553f6500000000000000000000000000000000000000000000000000000000000003e800000000000000000000000047ac0fb4f2d84898e4d9e7b4dab3c24507a6d503","v":"0x0","r":"0x0","s":"0x0"}`
-// 			}
-// 			if tc.chainId == 10 {
-// 				expectedTxJSON = `{"type":"0x0","nonce":"0x2e854c","to":"0x36a2f7fb07c102415afe2461a9a43377970e081c","gas":"0x1e8480","maxPriorityFeePerGas":null,"maxFeePerGas":null,"value":"0x0","input":"0xd2d0e0660000000000000000000000000b2c639c533813f4aa9d7837caf62653d097ff8500000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000007b","v":"0x0","r":"0x0","s":"0x0"}`
-// 			}
+			// var expectedTxJSON string
+			// if tc.chainId == 1 {
+			// 	expectedTxJSON = `{"type":"0x0","nonce":"0x2d","to":"0x83f20f44975d03b1b09e64809b757c47f942beea","gas":"0x1e8480","maxPriorityFeePerGas":null,"maxFeePerGas":null,"value":"0x0","input":"0x6e553f6500000000000000000000000000000000000000000000000000000000000003e800000000000000000000000047ac0fb4f2d84898e4d9e7b4dab3c24507a6d503","v":"0x0","r":"0x0","s":"0x0"}`
+			// }
+			// if tc.chainId == 10 {
+			// 	expectedTxJSON = `{"type":"0x0","nonce":"0x2e854c","to":"0x36a2f7fb07c102415afe2461a9a43377970e081c","gas":"0x1e8480","maxPriorityFeePerGas":null,"maxFeePerGas":null,"value":"0x0","input":"0xd2d0e0660000000000000000000000000b2c639c533813f4aa9d7837caf62653d097ff8500000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000007b","v":"0x0","r":"0x0","s":"0x0"}`
+			// }
 
-// 			var expectedTx map[string]interface{}
-// 			err = json.Unmarshal([]byte(expectedTxJSON), &expectedTx)
-// 			assert.NoError(t, err)
+			// var expectedTx map[string]interface{}
+			// err = json.Unmarshal([]byte(expectedTxJSON), &expectedTx)
+			// assert.NoError(t, err)
 
-// 			var tx map[string]interface{}
-// 			err = json.Unmarshal([]byte(txJSON), &tx)
-// 			assert.NoError(t, err)
+			// var tx map[string]interface{}
+			// err = json.Unmarshal([]byte(txJSON), &tx)
+			// assert.NoError(t, err)
 
-// 			// Remove keys that should not be compared
-// 			delete(tx, "gasPrice")
-// 			delete(tx, "hash")
+			// // Remove keys that should not be compared
+			// delete(tx, "gasPrice")
+			// delete(tx, "hash")
 
-// 			assert.Equal(t, tx, expectedTx)
-// 		})
-// 	}
-// }
+			// assert.Equal(t, tx, expectedTx)
+		})
+	}
+}
 
-// func TestSdkCreateWithdrawTx(t *testing.T) {
-// 	for _, tc := range testCases {
-// 		t.Run("ChainID: "+strconv.FormatInt(tc.chainId, 10), func(t *testing.T) {
-// 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
-// 			assert.NoError(t, err)
+func TestSdkCreateWithdrawTx(t *testing.T) {
+	for _, tc := range testCases {
+		t.Run("ChainID: "+strconv.FormatInt(tc.chainId, 10), func(t *testing.T) {
+			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
+			assert.NoError(t, err)
 
-// 			mockAmount := big.NewInt(1e3)
-// 			mockReferral := big.NewInt(123)
-// 			txJSON, err := novaSdk.SdkDomain.CreateWithdrawTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
-// 			assert.NoError(t, err)
+			mockAmount := big.NewInt(1e3)
+			mockReferral := big.NewInt(123)
+			_, err = novaSdk.SdkDomain.CreateWithdrawTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
+			expectedErrorMessage := "Allowance is too low. First call approve function on sDai contract."
+			assert.Equal(t, expectedErrorMessage, err.Error())
 
-// 			var expectedTxJSON string
-// 			if tc.chainId == 1 {
-// 				expectedTxJSON = `{"type":"0x0","nonce":"0x1","to":"0x83f20f44975d03b1b09e64809b757c47f942beea","gas":"0x1e8480","maxPriorityFeePerGas":null,"maxFeePerGas":null,"value":"0x0","input":"0xb460af9400000000000000000000000000000000000000000000000000000000000003e800000000000000000000000083f20f44975d03b1b09e64809b757c47f942beea00000000000000000000000083f20f44975d03b1b09e64809b757c47f942beea","v":"0x0","r":"0x0","s":"0x0"}`
-// 			}
-// 			if tc.chainId == 10 {
-// 				expectedTxJSON = `{"type":"0x0","nonce":"0x0","to":"0x36a2f7fb07c102415afe2461a9a43377970e081c","gas":"0x1e8480","maxPriorityFeePerGas":null,"maxFeePerGas":null,"value":"0x0","input":"0xf3fef3a30000000000000000000000000b2c639c533813f4aa9d7837caf62653d097ff8500000000000000000000000000000000000000000000000000000000000003e8","v":"0x0","r":"0x0","s":"0x0"}`
-// 			}
+			// var expectedTxJSON string
+			// if tc.chainId == 1 {
+			// 	expectedTxJSON = `{"type":"0x0","nonce":"0x1","to":"0x83f20f44975d03b1b09e64809b757c47f942beea","gas":"0x1e8480","maxPriorityFeePerGas":null,"maxFeePerGas":null,"value":"0x0","input":"0xb460af9400000000000000000000000000000000000000000000000000000000000003e800000000000000000000000083f20f44975d03b1b09e64809b757c47f942beea00000000000000000000000083f20f44975d03b1b09e64809b757c47f942beea","v":"0x0","r":"0x0","s":"0x0"}`
+			// }
+			// if tc.chainId == 10 {
+			// 	expectedTxJSON = `{"type":"0x0","nonce":"0x0","to":"0x36a2f7fb07c102415afe2461a9a43377970e081c","gas":"0x1e8480","maxPriorityFeePerGas":null,"maxFeePerGas":null,"value":"0x0","input":"0xf3fef3a30000000000000000000000000b2c639c533813f4aa9d7837caf62653d097ff8500000000000000000000000000000000000000000000000000000000000003e8","v":"0x0","r":"0x0","s":"0x0"}`
+			// }
 
-// 			var expectedTx map[string]interface{}
-// 			err = json.Unmarshal([]byte(expectedTxJSON), &expectedTx)
-// 			assert.NoError(t, err)
+			// var expectedTx map[string]interface{}
+			// err = json.Unmarshal([]byte(expectedTxJSON), &expectedTx)
+			// assert.NoError(t, err)
 
-// 			var tx map[string]interface{}
-// 			err = json.Unmarshal([]byte(txJSON), &tx)
-// 			assert.NoError(t, err)
+			// var tx map[string]interface{}
+			// err = json.Unmarshal([]byte(txJSON), &tx)
+			// assert.NoError(t, err)
 
-// 			// Remove keys that should not be compared
-// 			delete(tx, "gasPrice")
-// 			delete(tx, "hash")
+			// // Remove keys that should not be compared
+			// delete(tx, "gasPrice")
+			// delete(tx, "hash")
 
-// 			assert.Equal(t, tx, expectedTx)
-// 		})
-// 	}
-// }
+			// assert.Equal(t, tx, expectedTx)
+		})
+	}
+}
 
 func TestSdkGetPrice(t *testing.T) {
 	for _, tc := range testCases {

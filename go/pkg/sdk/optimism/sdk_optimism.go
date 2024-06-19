@@ -53,8 +53,8 @@ func (sdk *SdkOptimism) getPriceFromInput(input optimismContracts.IMixedRouteQuo
 		return nil, fmt.Errorf("Error loading client: %w", err)
 	}
 
-	contractAddress := common.HexToAddress("0xa4ac92a0F54f1a447c55a4082c90742F5E76Df62")
-	quoter, err := optimismContracts.NewMixedRouteQuoterV1(contractAddress, client)
+	quoterAddress := common.HexToAddress("0xa4ac92a0F54f1a447c55a4082c90742F5E76Df62")
+	quoter, err := optimismContracts.NewMixedRouteQuoterV1(quoterAddress, client)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load MixedRouteQuoterV1 contract: %w", err)
 	}
@@ -140,8 +140,8 @@ func (sdk *SdkOptimism) GetSDaiPrice() (*big.Int, error) {
 		return nil, fmt.Errorf("Error loading client: %w", err)
 	}
 
-	contractAddress := common.HexToAddress("0x33a3aB524A43E69f30bFd9Ae97d1Ec679FF00B64")
-	oracle, err := optimismContracts.NewDSRAuthOracleCaller(contractAddress, client)
+	oracleAddress := common.HexToAddress("0x33a3aB524A43E69f30bFd9Ae97d1Ec679FF00B64")
+	oracle, err := optimismContracts.NewDSRAuthOracleCaller(oracleAddress, client)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load DSRAuthOracle contract: %w", err)
 	}
@@ -271,10 +271,25 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 	}
 
 	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
+	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("Failed to connect to the Optimism client: %v", err)
+	}
+
+	stableContract, err := optimismContracts.NewFiatTokenV22Caller(stableAddress, client)
+	if err != nil {
+		return "", fmt.Errorf("Failed to load FiatTokenV22 contract: %w", err)
+	}
+
+	result, err := stableContract.Allowance(nil, fromAddress, vaultAddress)
+	if err != nil {
+		return "", fmt.Errorf("Failed to call Allowance function: %w", err)
+	}
+
+	if amount.Cmp(result) > 0 {
+		return "", fmt.Errorf("Allowance is too low. First call approve function on USDC contract.")
 	}
 
 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
@@ -286,8 +301,6 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 	if err != nil {
 		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
 	}
-
-	contractAddress := common.HexToAddress(sdk.Config.VaultAddress)
 
 	contractAbi, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultMetaData.ABI))
 	if err != nil {
@@ -301,14 +314,14 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 	}
 
 	// Estimating the gas needed for the transaction
-	msg := ethereum.CallMsg{From: fromAddress, To: &contractAddress, GasPrice: gasPrice, Value: big.NewInt(0), Data: data}
+	msg := ethereum.CallMsg{From: fromAddress, To: &vaultAddress, GasPrice: gasPrice, Value: big.NewInt(0), Data: data}
 	gasLimit, err := client.EstimateGas(context.Background(), msg)
 	if err != nil {
 		log.Printf("Gas estimation failed, using fallback gas limit: %v", err)
 		gasLimit = 2000000
 	}
 
-	tx := types.NewTransaction(nonce, contractAddress, big.NewInt(0), gasLimit, gasPrice, data)
+	tx := types.NewTransaction(nonce, vaultAddress, big.NewInt(0), gasLimit, gasPrice, data)
 
 	txJSON, err := json.Marshal(tx)
 	if err != nil {
@@ -325,10 +338,26 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 	}
 
 	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
+	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
+	sDaiAddress := common.HexToAddress(sdk.Config.SDai)
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("Failed to connect to the Ethereum client: %v", err)
+	}
+
+	sDaiContract, err := optimismContracts.NewSavingsDaiCaller(sDaiAddress, client)
+	if err != nil {
+		return "", fmt.Errorf("Failed to load SavingsDai contract: %w", err)
+	}
+
+	result, err := sDaiContract.Allowance(nil, fromAddress, vaultAddress)
+	if err != nil {
+		return "", fmt.Errorf("Failed to call Allowance function: %w", err)
+	}
+
+	if amount.Cmp(result) > 0 {
+		return "", fmt.Errorf("Allowance is too low. First call approve function on sDai contract.")
 	}
 
 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
@@ -346,22 +375,20 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
 	}
 
-	contractAddress := common.HexToAddress(sdk.Config.VaultAddress)
-
 	data, err := contractAbi.Pack("withdraw", stableAddress, amount)
 	if err != nil {
 		return "", fmt.Errorf("ABI pack failed: %v", err)
 	}
 
 	// Estimating the gas needed for the transaction
-	msg := ethereum.CallMsg{From: fromAddress, To: &contractAddress, GasPrice: gasPrice, Value: big.NewInt(0), Data: data}
+	msg := ethereum.CallMsg{From: fromAddress, To: &vaultAddress, GasPrice: gasPrice, Value: big.NewInt(0), Data: data}
 	gasLimit, err := client.EstimateGas(context.Background(), msg)
 	if err != nil {
 		log.Printf("Gas estimation failed, using fallback gas limit: %v", err)
 		gasLimit = 2000000
 	}
 
-	tx := types.NewTransaction(nonce, contractAddress, big.NewInt(0), gasLimit, gasPrice, data)
+	tx := types.NewTransaction(nonce, vaultAddress, big.NewInt(0), gasLimit, gasPrice, data)
 
 	txJSON, err := json.Marshal(tx)
 	if err != nil {

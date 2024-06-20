@@ -41,7 +41,8 @@ func TestSdkConfig(t *testing.T) {
 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
 			assert.NoError(t, err)
 
-			assert.Equal(t, tc.chainId, novaSdk.Config.ChainId)
+			cfg := novaSdk.GetConfig()
+			assert.Equal(t, tc.chainId, cfg.ChainId)
 		})
 	}
 }
@@ -52,14 +53,16 @@ func TestSdkConfigDetails(t *testing.T) {
 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
 			assert.NoError(t, err)
 
+			cfg := novaSdk.GetConfig()
+
 			vaultAddress := constants.ConfigDetails[tc.chainId].VaultAddress
-			assert.Equal(t, vaultAddress, novaSdk.Config.VaultAddress)
+			assert.Equal(t, vaultAddress, cfg.VaultAddress)
 
 			sDai := constants.ConfigDetails[tc.chainId].SDai
-			assert.Equal(t, sDai, novaSdk.Config.SDai)
+			assert.Equal(t, sDai, cfg.SDai)
 
 			vaultDecimals := constants.ConfigDetails[tc.chainId].VaultDecimals
-			assert.Equal(t, vaultDecimals, novaSdk.Config.VaultDecimals)
+			assert.Equal(t, vaultDecimals, cfg.VaultDecimals)
 		})
 	}
 }
@@ -72,7 +75,7 @@ func TestSdkCreateDepositTx(t *testing.T) {
 
 			mockAmount := big.NewInt(1e3)
 			mockReferral := big.NewInt(123)
-			_, err = novaSdk.SdkDomain.CreateDepositTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
+			_, err = novaSdk.CreateDepositTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
 			expectedErrorMessage := fmt.Sprintf("Allowance is too low. First call approve function on %s contract.", tc.stable)
 			assert.Equal(t, expectedErrorMessage, err.Error())
 
@@ -109,7 +112,7 @@ func TestSdkCreateWithdrawTx(t *testing.T) {
 
 			mockAmount := big.NewInt(1e3)
 			mockReferral := big.NewInt(123)
-			_, err = novaSdk.SdkDomain.CreateWithdrawTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
+			_, err = novaSdk.CreateWithdrawTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
 			expectedErrorMessage := "Allowance is too low. First call approve function on sDai contract."
 			assert.Equal(t, expectedErrorMessage, err.Error())
 
@@ -144,7 +147,7 @@ func TestSdkGetPrice(t *testing.T) {
 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
 			assert.NoError(t, err)
 
-			price, err := novaSdk.SdkDomain.GetPrice(tc.stable)
+			price, err := novaSdk.GetPrice(tc.stable)
 			assert.NoError(t, err)
 
 			stableDecimals := constants.StablecoinDetails[tc.chainId][tc.stable].Decimals
@@ -166,7 +169,7 @@ func TestSdkGetSDaiPrice(t *testing.T) {
 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
 			assert.NoError(t, err)
 
-			price, err := novaSdk.SdkDomain.GetSDaiPrice()
+			price, err := novaSdk.GetSDaiPrice()
 			assert.NoError(t, err)
 
 			lowerBound := big.NewInt(1e18)
@@ -185,7 +188,7 @@ func TestSdkGetSlippage(t *testing.T) {
 			assert.NoError(t, err)
 
 			slippageAmount := big.NewInt(1e10)
-			slippage, expectedPrice, executedPrice, err := novaSdk.SdkDomain.GetSlippage(tc.stable, slippageAmount)
+			slippage, expectedPrice, executedPrice, err := novaSdk.GetSlippage(tc.stable, slippageAmount)
 			assert.NoError(t, err)
 
 			slippageLowerBound := 0.0
@@ -212,7 +215,7 @@ func TestSdkGetPosition(t *testing.T) {
 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
 			assert.NoError(t, err)
 
-			position, err := novaSdk.SdkDomain.GetPosition(tc.stable, tc.mockAddress)
+			position, err := novaSdk.GetPosition(tc.stable, tc.mockAddress)
 			assert.NoError(t, err)
 
 			lowerBound := big.NewInt(0)
@@ -228,7 +231,7 @@ func TestSdkGetSDaiTotalValue(t *testing.T) {
 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
 			assert.NoError(t, err)
 
-			position, err := novaSdk.SdkDomain.GetSDaiTotalValue()
+			position, err := novaSdk.GetSDaiTotalValue()
 			assert.NoError(t, err)
 
 			lowerBound := big.NewInt(0)
@@ -244,7 +247,7 @@ func TestSdkGetSupportedStablecoins(t *testing.T) {
 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
 			assert.NoError(t, err)
 
-			stables, err := novaSdk.SdkDomain.GetSupportedStablecoins()
+			stables, err := novaSdk.GetSupportedStablecoins()
 			assert.NoError(t, err)
 
 			assert.Len(t, stables, 1, "The length of the stablecoins array should be 1")

@@ -45,6 +45,10 @@ func (sdk *SdkEthereum) isStablecoinSupported(stable constants.Stablecoin) bool 
 	return false
 }
 
+func (sdk *SdkEthereum) GetConfig() *config.Config {
+	return sdk.Config
+}
+
 func (sdk *SdkEthereum) GetPrice(stable constants.Stablecoin) (*big.Int, error) {
 	ok := sdk.isStablecoinSupported(stable)
 	if !ok {

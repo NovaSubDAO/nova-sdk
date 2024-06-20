@@ -13,6 +13,7 @@ type SdkInterface interface {
 	GetPosition(constants.Stablecoin, common.Address) (*big.Int, error)
 	GetSlippage(constants.Stablecoin, *big.Int) (float64, float64, float64, error)
 
+	GetConfig() (*config.Config)
 	GetSDaiPrice() (*big.Int, error)
 	GetSDaiTotalValue() (*big.Int, error)
 	GetSupportedStablecoins() ([]constants.Stablecoin, error)
@@ -49,7 +50,7 @@ import (
 )
 
 func main() {
-    price, err := novaSdk.SdkDomain.GetPrice("USDC")
+    price, err := novaSdk.GetPrice("USDC")
     if err != nil {
         fmt.Println("Error retrieving price:", err)
     } else {
@@ -85,7 +86,7 @@ import (
 
 func main() {
     address := common.HexToAddress("0x123...")
-    position, err := novaSdk.SdkDomain.GetPosition("USDC", address)
+    position, err := novaSdk.GetPosition("USDC", address)
     if err != nil {
         fmt.Println("Error retrieving position:", err)
     } else {
@@ -127,12 +128,43 @@ func main() {
 	novaSdk, err := sdk.NewNovaSDK(rpcEndpoint, chainId)
 
     amountToSwap := big.NewInt(1000) // example amount to swap
-    slippage, err := novaSdk.SdkDomain.GetSlippage("USDC", amountToSwap)
+    slippage, err := novaSdk.GetSlippage("USDC", amountToSwap)
     if err != nil {
         fmt.Println("Error calculating slippage:", err)
     } else {
         fmt.Printf("Slippage percentage: %.2f%%\n", slippage)
     }
+}
+```
+
+### GetConfig
+
+Retrieves the config of the instance.
+
+#### Returns
+
+- `config` (\*config.Config): SDK config, containing vault address, vault decimals, sDai address, rpc endpoint and chain id.
+
+#### Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk"
+)
+
+func main() {
+    rpcEndpoint := "https://your-rpc-endpoint"
+    chainId := int64(123)
+	novaSdk, err := sdk.NewNovaSDK(rpcEndpoint, chainId)
+
+    cfg := novaSdk.GetConfig()
+
+    fmt.Println("Vault address:", cfg.VaultAddress)
+    fmt.Println("Vault decimals:", cfg.VaultDecimals)
+    fmt.Println("sDai address:", cfg.SDai)
 }
 ```
 
@@ -160,7 +192,7 @@ func main() {
     chainId := int64(123)
 	novaSdk, err := sdk.NewNovaSDK(rpcEndpoint, chainId)
 
-    price, err := novaSdk.SdkDomain.GetSDaiPrice()
+    price, err := novaSdk.GetSDaiPrice()
     if err != nil {
         fmt.Println("Error retrieving sDAI price:", err)
     } else {
@@ -193,7 +225,7 @@ func main() {
     chainId := int64(123)
 	novaSdk, err := sdk.NewNovaSDK(rpcEndpoint, chainId)
 
-    totalValue, err := novaSdk.SdkDomain.GetSDaiTotalValue()
+    totalValue, err := novaSdk.GetSDaiTotalValue()
     if err != nil {
         fmt.Println("Error retrieving total value of sDAI:", err)
     } else {
@@ -226,7 +258,7 @@ func main() {
     chainId := int64(123)
 	novaSdk, err := sdk.NewNovaSDK(rpcEndpoint, chainId)
 
-    stables, err := novaSdk.SdkDomain.GetSupportedStablecoins()
+    stables, err := novaSdk.GetSupportedStablecoins()
     if err != nil {
         fmt.Println("Error retrieving list of stablecoinsI:", err)
     } else {
@@ -274,7 +306,7 @@ func main() {
     depositAmount := big.NewInt(1000)
     referralCode := big.NewInt(101)
 
-    transactionObject, err := novaSdk.SdkDomain.CreateDepositTransaction(stablecoin, userAddress, depositAmount, referralCode)
+    transactionObject, err := novaSdk.CreateDepositTransaction(stablecoin, userAddress, depositAmount, referralCode)
     if err != nil {
         fmt.Println("Error creating deposit transaction:", err)
     } else {
@@ -322,7 +354,7 @@ func main() {
     withdrawAmount := big.NewInt(500)
     referralCode := big.NewInt(102)
 
-    transactionObject, err := novaSdk.SdkDomain.CreateWithdrawTransaction(stablecoin, userAddress, withdrawAmount, referralCode)
+    transactionObject, err := novaSdk.CreateWithdrawTransaction(stablecoin, userAddress, withdrawAmount, referralCode)
     if err != nil {
         fmt.Println("Error creating withdraw transaction:", err)
     } else {

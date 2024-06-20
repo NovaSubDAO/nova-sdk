@@ -47,6 +47,10 @@ func (sdk *SdkOptimism) isStablecoinSupported(stable constants.Stablecoin) bool 
 	return false
 }
 
+func (sdk *SdkOptimism) GetConfig() *config.Config {
+	return sdk.Config
+}
+
 func (sdk *SdkOptimism) getPriceFromInput(input optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV3Params) (*big.Int, error) {
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {

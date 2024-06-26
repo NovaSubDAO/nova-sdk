@@ -41,7 +41,7 @@ var ConfigDetails = map[int64]ConfigData{
 		VaultDecimals: 18,
 	},
 	10: {
-		VaultAddress:  "0x36A2f7Fb07c102415afe2461a9A43377970E081c",
+		VaultAddress:  "0x7A8F265F2d1362ED8b6D5dd52E82741217BE8D3C",
 		SDai:          "0x2218a117083f5B482B0bB821d27056Ba9c04b1D3",
 		VaultDecimals: 18,
 	},

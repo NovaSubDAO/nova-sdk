@@ -46,3 +46,8 @@ var ConfigDetails = map[int64]ConfigData{
 		VaultDecimals: 18,
 	},
 }
+
+const (
+	OptSDaiOracleAddress string = "0x33a3aB524A43E69f30bFd9Ae97d1Ec679FF00B64"
+	OptQuoterV2Address   string = "0x89D8218ed5fF1e46d8dcd33fb0bbeE3be1621466"
+)

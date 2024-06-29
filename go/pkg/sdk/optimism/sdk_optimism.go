@@ -51,23 +51,23 @@ func (sdk *SdkOptimism) GetConfig() *config.Config {
 	return sdk.Config
 }
 
-func (sdk *SdkOptimism) getPriceFromInput(input optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV3Params) (*big.Int, error) {
+func (sdk *SdkOptimism) getPriceFromInput(input optimismContracts.IQuoterV2QuoteExactInputSingleParams) (*big.Int, error) {
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading client: %w", err)
 	}
 
-	quoterAddress := common.HexToAddress("0xa4ac92a0F54f1a447c55a4082c90742F5E76Df62")
-	quoter, err := optimismContracts.NewMixedRouteQuoterV1(quoterAddress, client)
+	quoterAddress := common.HexToAddress(constants.OptQuoterV2Address)
+	quoter, err := optimismContracts.NewQuoterV2(quoterAddress, client)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to load MixedRouteQuoterV1 contract: %w", err)
+		return nil, fmt.Errorf("Failed to load QuoterV2 contract: %w", err)
 	}
 
 	var output []interface{}
-	rawCaller := &optimismContracts.MixedRouteQuoterV1Raw{Contract: quoter}
-	err = rawCaller.Call(nil, &output, "quoteExactInputSingleV3", input)
+	rawCaller := &optimismContracts.QuoterV2Raw{Contract: quoter}
+	err = rawCaller.Call(nil, &output, "quoteExactInputSingle", input)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to call quoteExactInputSingleV3 function: %w", err)
+		return nil, fmt.Errorf("Failed to call quoteExactInputSingle function: %w", err)
 	}
 	amountOut := output[0].(*big.Int)
 
@@ -89,7 +89,7 @@ func (sdk *SdkOptimism) GetPrice(stable constants.Stablecoin) (*big.Int, error) 
 	base := big.NewInt(10)
 	one := new(big.Int).Exp(base, big.NewInt(int64(stableDecimals)), nil)
 
-	input := optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV3Params{
+	input := optimismContracts.IQuoterV2QuoteExactInputSingleParams{
 		TokenIn:           tokenIn,
 		TokenOut:          tokenOut,
 		AmountIn:          one,
@@ -144,7 +144,7 @@ func (sdk *SdkOptimism) GetSDaiPrice() (*big.Int, error) {
 		return nil, fmt.Errorf("Error loading client: %w", err)
 	}
 
-	oracleAddress := common.HexToAddress("0x33a3aB524A43E69f30bFd9Ae97d1Ec679FF00B64")
+	oracleAddress := common.HexToAddress(constants.OptSDaiOracleAddress)
 	oracle, err := optimismContracts.NewDSRAuthOracleCaller(oracleAddress, client)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load DSRAuthOracle contract: %w", err)
@@ -209,7 +209,7 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 	base := big.NewInt(10)
 	one := new(big.Int).Exp(base, big.NewInt(int64(stableDecimals)), nil)
 
-	input := optimismContracts.IMixedRouteQuoterV1QuoteExactInputSingleV3Params{
+	input := optimismContracts.IQuoterV2QuoteExactInputSingleParams{
 		TokenIn:           tokenIn,
 		TokenOut:          tokenOut,
 		AmountIn:          one,

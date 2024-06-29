@@ -187,7 +187,11 @@ func TestSdkGetSlippage(t *testing.T) {
 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
 			assert.NoError(t, err)
 
-			slippageAmount := big.NewInt(1e8)
+			stableDecimals := constants.StablecoinDetails[tc.chainId][tc.stable].Decimals
+			base := big.NewInt(10)
+			one := new(big.Int).Exp(base, big.NewInt(int64(stableDecimals)), nil)
+
+			slippageAmount := new(big.Int).Mul(big.NewInt(1000), one)
 			slippage, expectedPrice, executedPrice, err := novaSdk.GetSlippage(tc.stable, slippageAmount)
 			assert.NoError(t, err)
 

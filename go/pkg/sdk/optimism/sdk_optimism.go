@@ -268,6 +268,106 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 	return percentageChange, expectedPriceFloat, executedPriceFloat, nil
 }
 
+func (sdk *SdkOptimism) AddDex(fromAddress common.Address, dexAddress common.Address) (string, error) {
+	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
+	if err != nil {
+		return "", fmt.Errorf("Failed to connect to the Optimism client: %v", err)
+	}
+
+	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
+	contractAbi, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultV2MetaData.ABI))
+	if err != nil {
+		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
+	}
+
+	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
+	if err != nil {
+		return "", fmt.Errorf("Failed to get nonce: %v", err)
+	}
+
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
+	}
+
+	data, err := contractAbi.Pack("addDex", dexAddress)
+	if err != nil {
+		return "", fmt.Errorf("ABI pack failed: %v", err)
+	}
+
+	msg := ethereum.CallMsg{
+		From:     fromAddress,
+		To:       &vaultAddress,
+		GasPrice: gasPrice,
+		Value:    big.NewInt(0),
+		Data:     data,
+	}
+	gasLimit, err := client.EstimateGas(context.Background(), msg)
+	if err != nil {
+		log.Printf("Gas estimation failed, using fallback gas limit: %v", err)
+		gasLimit = 2000000
+	}
+
+	tx := types.NewTransaction(nonce, vaultAddress, big.NewInt(0), gasLimit, gasPrice, data)
+
+	txJSON, err := json.Marshal(tx)
+	if err != nil {
+		return "", fmt.Errorf("Failed to marshal transaction: %w", err)
+	}
+
+	return string(txJSON), nil
+}
+
+func (sdk *SdkOptimism) SetFunctionApprovalBySignature(fromAddress common.Address, selector [4]byte) (string, error) {
+	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
+	if err != nil {
+		return "", fmt.Errorf("Failed to connect to the Optimism client: %v", err)
+	}
+
+	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
+	contractAbi, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultV2MetaData.ABI))
+	if err != nil {
+		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
+	}
+
+	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
+	if err != nil {
+		return "", fmt.Errorf("Failed to get nonce: %v", err)
+	}
+
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
+	}
+
+	data, err := contractAbi.Pack("setFunctionApprovalBySignature", selector)
+	if err != nil {
+		return "", fmt.Errorf("ABI pack failed: %v", err)
+	}
+
+	msg := ethereum.CallMsg{
+		From:     fromAddress,
+		To:       &vaultAddress,
+		GasPrice: gasPrice,
+		Value:    big.NewInt(0),
+		Data:     data,
+	}
+	gasLimit, err := client.EstimateGas(context.Background(), msg)
+	if err != nil {
+		log.Printf("Gas estimation failed, using fallback gas limit: %v", err)
+		gasLimit = 2000000
+	}
+
+	tx := types.NewTransaction(nonce, vaultAddress, big.NewInt(0), gasLimit, gasPrice, data)
+
+	txJSON, err := json.Marshal(tx)
+	if err != nil {
+		return "", fmt.Errorf("Failed to marshal transaction: %w", err)
+	}
+
+	return string(txJSON), nil
+}
+
 func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
 	ok := sdk.isStablecoinSupported(stable)
 	if !ok {

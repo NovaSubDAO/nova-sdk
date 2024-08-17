@@ -18,6 +18,9 @@ type SdkInterface interface {
 	GetSDaiTotalValue() (*big.Int, error)
 	GetSupportedStablecoins() ([]constants.Stablecoin, error)
 
+	// AddDex(common.Address, common.Address) (string, error)
+	// SetFunctionApprovalBySignature(common.Address, string, [4]byte) (string, error)
+
 	CreateDepositTransaction(constants.Stablecoin, common.Address, *big.Int, *big.Int) (string, error)
 	CreateWithdrawTransaction(constants.Stablecoin, common.Address, *big.Int, *big.Int) (string, error)
 }

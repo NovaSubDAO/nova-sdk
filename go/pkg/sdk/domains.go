@@ -5,7 +5,6 @@ import (
 
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/config"
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/constants"
-	optimismContracts "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/optimism/abis"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -19,6 +18,6 @@ type SdkInterface interface {
 	GetSDaiTotalValue() (*big.Int, error)
 	GetSupportedStablecoins() ([]constants.Stablecoin, error)
 
-	CreateDepositTransaction(constants.Stablecoin, common.Address, *[]optimismContracts.LibSwapSwapData, *big.Int) (string, error)
+	CreateDepositTransaction(constants.Stablecoin, common.Address, *big.Int, *big.Int) (string, error)
 	CreateWithdrawTransaction(constants.Stablecoin, common.Address, *big.Int, *big.Int) (string, error)
 }

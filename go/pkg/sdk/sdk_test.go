@@ -55,8 +55,8 @@ func TestSdkConfigDetails(t *testing.T) {
 
 			cfg := novaSdk.GetConfig()
 
-			vaultAddressV2 := constants.ConfigDetails[tc.chainId].VaultAddressV2
-			assert.Equal(t, vaultAddressV2, cfg.VaultAddress)
+			vaultAddress := constants.ConfigDetails[tc.chainId].VaultAddress
+			assert.Equal(t, vaultAddress, cfg.VaultAddress)
 
 			sDai := constants.ConfigDetails[tc.chainId].SDai
 			assert.Equal(t, sDai, cfg.SDai)

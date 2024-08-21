@@ -268,110 +268,23 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 	return percentageChange, expectedPriceFloat, executedPriceFloat, nil
 }
 
-func (sdk *SdkOptimism) AddDex(fromAddress common.Address, dexAddress common.Address) (string, error) {
-	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
-	if err != nil {
-		return "", fmt.Errorf("Failed to connect to the Optimism client: %v", err)
-	}
-
-	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
-	contractAbi, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultV2MetaData.ABI))
-	if err != nil {
-		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
-	}
-
-	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
-	if err != nil {
-		return "", fmt.Errorf("Failed to get nonce: %v", err)
-	}
-
-	gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
-	}
-
-	data, err := contractAbi.Pack("addDex", dexAddress)
-	if err != nil {
-		return "", fmt.Errorf("ABI pack failed: %v", err)
-	}
-
-	msg := ethereum.CallMsg{
-		From:     fromAddress,
-		To:       &vaultAddress,
-		GasPrice: gasPrice,
-		Value:    big.NewInt(0),
-		Data:     data,
-	}
-	gasLimit, err := client.EstimateGas(context.Background(), msg)
-	if err != nil {
-		log.Printf("Gas estimation failed, using fallback gas limit: %v", err)
-		gasLimit = 2000000
-	}
-
-	tx := types.NewTransaction(nonce, vaultAddress, big.NewInt(0), gasLimit, gasPrice, data)
-
-	txJSON, err := json.Marshal(tx)
-	if err != nil {
-		return "", fmt.Errorf("Failed to marshal transaction: %w", err)
-	}
-
-	return string(txJSON), nil
-}
-
-func (sdk *SdkOptimism) SetFunctionApprovalBySignature(fromAddress common.Address, selector [4]byte) (string, error) {
-	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
-	if err != nil {
-		return "", fmt.Errorf("Failed to connect to the Optimism client: %v", err)
-	}
-
-	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
-	contractAbi, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultV2MetaData.ABI))
-	if err != nil {
-		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
-	}
-
-	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
-	if err != nil {
-		return "", fmt.Errorf("Failed to get nonce: %v", err)
-	}
-
-	gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
-	}
-
-	data, err := contractAbi.Pack("setFunctionApprovalBySignature", selector)
-	if err != nil {
-		return "", fmt.Errorf("ABI pack failed: %v", err)
-	}
-
-	msg := ethereum.CallMsg{
-		From:     fromAddress,
-		To:       &vaultAddress,
-		GasPrice: gasPrice,
-		Value:    big.NewInt(0),
-		Data:     data,
-	}
-	gasLimit, err := client.EstimateGas(context.Background(), msg)
-	if err != nil {
-		log.Printf("Gas estimation failed, using fallback gas limit: %v", err)
-		gasLimit = 2000000
-	}
-
-	tx := types.NewTransaction(nonce, vaultAddress, big.NewInt(0), gasLimit, gasPrice, data)
-
-	txJSON, err := json.Marshal(tx)
-	if err != nil {
-		return "", fmt.Errorf("Failed to marshal transaction: %w", err)
-	}
-
-	return string(txJSON), nil
-}
-
-func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
+func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fromAddress common.Address, swapData *[]optimismContracts.LibSwapSwapData, referral *big.Int) (string, error) {
 	ok := sdk.isStablecoinSupported(stable)
 	if !ok {
 		return "", fmt.Errorf("stablecoin %s is not supported", stable)
+	}
+	
+	depositSwapData := *swapData
+	if len(depositSwapData) > 0 {
+		if (depositSwapData[0].SendingAssetId).Hex() != constants.StablecoinDetails[sdk.Config.ChainId][stable].Address {
+			return "", fmt.Errorf("swapData::wrong stablecoin address")
+		}
+
+		if (depositSwapData[0].ReceivingAssetId).Hex() != sdk.Config.SDai {
+			return "", fmt.Errorf("swapData::wrong sDai address")
+		}
+	} else {
+		return "", fmt.Errorf("swapData::can not be empty")
 	}
 
 	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
@@ -379,7 +292,7 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
-		return "", fmt.Errorf("Failed to connect to the Optimism client: %v", err)
+		return "", fmt.Errorf("failed to connect to the Optimism client: %v", err)
 	}
 
 	stableContract, err := optimismContracts.NewFiatTokenV22Caller(stableAddress, client)
@@ -392,7 +305,7 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 		return "", fmt.Errorf("Failed to call Allowance function: %w", err)
 	}
 
-	if amount.Cmp(result) > 0 {
+	if depositSwapData[0].FromAmount.Cmp(result) > 0 {
 		return "", fmt.Errorf("Allowance is too low. First call approve function on USDC contract.")
 	}
 
@@ -412,7 +325,7 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 	}
 
 	referralUint16 := uint16(referral.Uint64())
-	data, err := contractAbi.Pack("deposit", stableAddress, amount, referralUint16)
+	data, err := contractAbi.Pack("deposit", depositSwapData[0], referralUint16)
 	if err != nil {
 		return "", fmt.Errorf("ABI pack failed: %v", err)
 	}
@@ -435,13 +348,25 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 	return string(txJSON), nil
 }
 
-func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
+func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, fromAddress common.Address, swapData *[]optimismContracts.LibSwapSwapData, referral *big.Int) (string, error) {
 	ok := sdk.isStablecoinSupported(stable)
 	if !ok {
 		return "", fmt.Errorf("stablecoin %s is not supported", stable)
 	}
 
-	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
+	withdrawSwapData := *swapData
+	if len(withdrawSwapData) > 0 {
+		if (withdrawSwapData[0].SendingAssetId).Hex() != sdk.Config.SDai {
+			return "", fmt.Errorf("swapData::wrong sDai address")
+		}
+
+		if (withdrawSwapData[0].ReceivingAssetId).Hex() != constants.StablecoinDetails[sdk.Config.ChainId][stable].Address {
+			return "", fmt.Errorf("swapData::wrong stablecoin address")
+		}
+	} else {
+		return "", fmt.Errorf("swapData::can not be empty")
+	}
+
 	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
 	sDaiAddress := common.HexToAddress(sdk.Config.SDai)
 
@@ -460,8 +385,8 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 		return "", fmt.Errorf("Failed to call Allowance function: %w", err)
 	}
 
-	if amount.Cmp(result) > 0 {
-		return "", fmt.Errorf("Allowance is too low. First call approve function on sDai contract.")
+	if withdrawSwapData[0].FromAmount.Cmp(result) > 0 {
+		return "", fmt.Errorf("Allowance is too low. First call approve function on USDC contract.")
 	}
 
 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
@@ -479,7 +404,8 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
 	}
 
-	data, err := contractAbi.Pack("withdraw", stableAddress, amount)
+	referralUint16 := uint16(referral.Uint64())
+	data, err := contractAbi.Pack("withdraw", referralUint16, withdrawSwapData[0])
 	if err != nil {
 		return "", fmt.Errorf("ABI pack failed: %v", err)
 	}

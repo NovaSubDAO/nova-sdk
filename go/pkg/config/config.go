@@ -16,7 +16,7 @@ type Config struct {
 
 func convertConfigDataToConfig(data constants.ConfigData) Config {
 	return Config{
-		VaultAddress:  data.VaultAddressV2,
+		VaultAddress:  data.VaultAddress,
 		VaultDecimals: data.VaultDecimals,
 		SDai:          data.SDai,
 	}

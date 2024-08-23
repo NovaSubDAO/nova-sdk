@@ -10,7 +10,7 @@ type Config struct {
 	VaultAddress  string `json:"vaultAddress"`
 	VaultDecimals int64  `json:"vaultDecimals"`
 	SDai          string
-	VelodromePool string
+	LiquidityPool string
 	RpcEndpoint   string
 	ChainId       int64
 }
@@ -20,7 +20,7 @@ func convertConfigDataToConfig(data constants.ConfigData) Config {
 		VaultAddress:  data.VaultAddress,
 		VaultDecimals: data.VaultDecimals,
 		SDai:          data.SDai,
-		VelodromePool: data.VelodromePool,
+		LiquidityPool: data.VelodromePool,
 	}
 }
 

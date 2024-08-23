@@ -29,113 +29,113 @@ var (
 	_ = abi.ConvertType
 )
 
-// IVelodromeMetaData contains all meta data concerning the IVelodrome contract.
-var IVelodromeMetaData = &bind.MetaData{
+// VelodromeMetaData contains all meta data concerning the Velodrome contract.
+var VelodromeMetaData = &bind.MetaData{
 	ABI: "[{\"type\":\"function\",\"name\":\"slot0\",\"inputs\":[],\"outputs\":[{\"name\":\"sqrtPriceX96\",\"type\":\"uint160\",\"internalType\":\"uint160\"},{\"name\":\"tick\",\"type\":\"int24\",\"internalType\":\"int24\"},{\"name\":\"observationIndex\",\"type\":\"uint16\",\"internalType\":\"uint16\"},{\"name\":\"observationCardinality\",\"type\":\"uint16\",\"internalType\":\"uint16\"},{\"name\":\"observationCardinalityNext\",\"type\":\"uint16\",\"internalType\":\"uint16\"},{\"name\":\"unlocked\",\"type\":\"bool\",\"internalType\":\"bool\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"swap\",\"inputs\":[{\"name\":\"recipient\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"zeroForOne\",\"type\":\"bool\",\"internalType\":\"bool\"},{\"name\":\"amountSpecified\",\"type\":\"int256\",\"internalType\":\"int256\"},{\"name\":\"sqrtPriceLimitX96\",\"type\":\"uint160\",\"internalType\":\"uint160\"},{\"name\":\"data\",\"type\":\"bytes\",\"internalType\":\"bytes\"}],\"outputs\":[{\"name\":\"amount0\",\"type\":\"int256\",\"internalType\":\"int256\"},{\"name\":\"amount1\",\"type\":\"int256\",\"internalType\":\"int256\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"token0\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"token1\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"}]",
 }
 
-// IVelodromeABI is the input ABI used to generate the binding from.
-// Deprecated: Use IVelodromeMetaData.ABI instead.
-var IVelodromeABI = IVelodromeMetaData.ABI
+// VelodromeABI is the input ABI used to generate the binding from.
+// Deprecated: Use VelodromeMetaData.ABI instead.
+var VelodromeABI = VelodromeMetaData.ABI
 
-// IVelodrome is an auto generated Go binding around an Ethereum contract.
-type IVelodrome struct {
-	IVelodromeCaller     // Read-only binding to the contract
-	IVelodromeTransactor // Write-only binding to the contract
-	IVelodromeFilterer   // Log filterer for contract events
+// Velodrome is an auto generated Go binding around an Ethereum contract.
+type Velodrome struct {
+	VelodromeCaller     // Read-only binding to the contract
+	VelodromeTransactor // Write-only binding to the contract
+	VelodromeFilterer   // Log filterer for contract events
 }
 
-// IVelodromeCaller is an auto generated read-only Go binding around an Ethereum contract.
-type IVelodromeCaller struct {
+// VelodromeCaller is an auto generated read-only Go binding around an Ethereum contract.
+type VelodromeCaller struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// IVelodromeTransactor is an auto generated write-only Go binding around an Ethereum contract.
-type IVelodromeTransactor struct {
+// VelodromeTransactor is an auto generated write-only Go binding around an Ethereum contract.
+type VelodromeTransactor struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// IVelodromeFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
-type IVelodromeFilterer struct {
+// VelodromeFilterer is an auto generated log filtering Go binding around an Ethereum contract events.
+type VelodromeFilterer struct {
 	contract *bind.BoundContract // Generic contract wrapper for the low level calls
 }
 
-// IVelodromeSession is an auto generated Go binding around an Ethereum contract,
+// VelodromeSession is an auto generated Go binding around an Ethereum contract,
 // with pre-set call and transact options.
-type IVelodromeSession struct {
-	Contract     *IVelodrome // Generic contract binding to set the session for
-	CallOpts     bind.CallOpts      // Call options to use throughout this session
-	TransactOpts bind.TransactOpts  // Transaction auth options to use throughout this session
+type VelodromeSession struct {
+	Contract     *Velodrome        // Generic contract binding to set the session for
+	CallOpts     bind.CallOpts     // Call options to use throughout this session
+	TransactOpts bind.TransactOpts // Transaction auth options to use throughout this session
 }
 
-// IVelodromeCallerSession is an auto generated read-only Go binding around an Ethereum contract,
+// VelodromeCallerSession is an auto generated read-only Go binding around an Ethereum contract,
 // with pre-set call options.
-type IVelodromeCallerSession struct {
-	Contract *IVelodromeCaller // Generic contract caller binding to set the session for
-	CallOpts bind.CallOpts            // Call options to use throughout this session
+type VelodromeCallerSession struct {
+	Contract *VelodromeCaller // Generic contract caller binding to set the session for
+	CallOpts bind.CallOpts    // Call options to use throughout this session
 }
 
-// IVelodromeTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
+// VelodromeTransactorSession is an auto generated write-only Go binding around an Ethereum contract,
 // with pre-set transact options.
-type IVelodromeTransactorSession struct {
-	Contract     *IVelodromeTransactor // Generic contract transactor binding to set the session for
-	TransactOpts bind.TransactOpts            // Transaction auth options to use throughout this session
+type VelodromeTransactorSession struct {
+	Contract     *VelodromeTransactor // Generic contract transactor binding to set the session for
+	TransactOpts bind.TransactOpts    // Transaction auth options to use throughout this session
 }
 
-// IVelodromeRaw is an auto generated low-level Go binding around an Ethereum contract.
-type IVelodromeRaw struct {
-	Contract *IVelodrome // Generic contract binding to access the raw methods on
+// VelodromeRaw is an auto generated low-level Go binding around an Ethereum contract.
+type VelodromeRaw struct {
+	Contract *Velodrome // Generic contract binding to access the raw methods on
 }
 
-// IVelodromeCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
-type IVelodromeCallerRaw struct {
-	Contract *IVelodromeCaller // Generic read-only contract binding to access the raw methods on
+// VelodromeCallerRaw is an auto generated low-level read-only Go binding around an Ethereum contract.
+type VelodromeCallerRaw struct {
+	Contract *VelodromeCaller // Generic read-only contract binding to access the raw methods on
 }
 
-// IVelodromeTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
-type IVelodromeTransactorRaw struct {
-	Contract *IVelodromeTransactor // Generic write-only contract binding to access the raw methods on
+// VelodromeTransactorRaw is an auto generated low-level write-only Go binding around an Ethereum contract.
+type VelodromeTransactorRaw struct {
+	Contract *VelodromeTransactor // Generic write-only contract binding to access the raw methods on
 }
 
-// NewIVelodrome creates a new instance of IVelodrome, bound to a specific deployed contract.
-func NewIVelodrome(address common.Address, backend bind.ContractBackend) (*IVelodrome, error) {
-	contract, err := bindIVelodrome(address, backend, backend, backend)
+// NewVelodrome creates a new instance of Velodrome, bound to a specific deployed contract.
+func NewVelodrome(address common.Address, backend bind.ContractBackend) (*Velodrome, error) {
+	contract, err := bindVelodrome(address, backend, backend, backend)
 	if err != nil {
 		return nil, err
 	}
-	return &IVelodrome{IVelodromeCaller: IVelodromeCaller{contract: contract}, IVelodromeTransactor: IVelodromeTransactor{contract: contract}, IVelodromeFilterer: IVelodromeFilterer{contract: contract}}, nil
+	return &Velodrome{VelodromeCaller: VelodromeCaller{contract: contract}, VelodromeTransactor: VelodromeTransactor{contract: contract}, VelodromeFilterer: VelodromeFilterer{contract: contract}}, nil
 }
 
-// NewIVelodromeCaller creates a new read-only instance of IVelodrome, bound to a specific deployed contract.
-func NewIVelodromeCaller(address common.Address, caller bind.ContractCaller) (*IVelodromeCaller, error) {
-	contract, err := bindIVelodrome(address, caller, nil, nil)
+// NewVelodromeCaller creates a new read-only instance of Velodrome, bound to a specific deployed contract.
+func NewVelodromeCaller(address common.Address, caller bind.ContractCaller) (*VelodromeCaller, error) {
+	contract, err := bindVelodrome(address, caller, nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &IVelodromeCaller{contract: contract}, nil
+	return &VelodromeCaller{contract: contract}, nil
 }
 
-// NewIVelodromeTransactor creates a new write-only instance of IVelodrome, bound to a specific deployed contract.
-func NewIVelodromeTransactor(address common.Address, transactor bind.ContractTransactor) (*IVelodromeTransactor, error) {
-	contract, err := bindIVelodrome(address, nil, transactor, nil)
+// NewVelodromeTransactor creates a new write-only instance of Velodrome, bound to a specific deployed contract.
+func NewVelodromeTransactor(address common.Address, transactor bind.ContractTransactor) (*VelodromeTransactor, error) {
+	contract, err := bindVelodrome(address, nil, transactor, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &IVelodromeTransactor{contract: contract}, nil
+	return &VelodromeTransactor{contract: contract}, nil
 }
 
-// NewIVelodromeFilterer creates a new log filterer instance of IVelodrome, bound to a specific deployed contract.
-func NewIVelodromeFilterer(address common.Address, filterer bind.ContractFilterer) (*IVelodromeFilterer, error) {
-	contract, err := bindIVelodrome(address, nil, nil, filterer)
+// NewVelodromeFilterer creates a new log filterer instance of Velodrome, bound to a specific deployed contract.
+func NewVelodromeFilterer(address common.Address, filterer bind.ContractFilterer) (*VelodromeFilterer, error) {
+	contract, err := bindVelodrome(address, nil, nil, filterer)
 	if err != nil {
 		return nil, err
 	}
-	return &IVelodromeFilterer{contract: contract}, nil
+	return &VelodromeFilterer{contract: contract}, nil
 }
 
-// bindIVelodrome binds a generic wrapper to an already deployed contract.
-func bindIVelodrome(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
-	parsed, err := IVelodromeMetaData.GetAbi()
+// bindVelodrome binds a generic wrapper to an already deployed contract.
+func bindVelodrome(address common.Address, caller bind.ContractCaller, transactor bind.ContractTransactor, filterer bind.ContractFilterer) (*bind.BoundContract, error) {
+	parsed, err := VelodromeMetaData.GetAbi()
 	if err != nil {
 		return nil, err
 	}
@@ -146,44 +146,44 @@ func bindIVelodrome(address common.Address, caller bind.ContractCaller, transact
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_IVelodrome *IVelodromeRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _IVelodrome.Contract.IVelodromeCaller.contract.Call(opts, result, method, params...)
+func (_Velodrome *VelodromeRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _Velodrome.Contract.VelodromeCaller.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_IVelodrome *IVelodromeRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _IVelodrome.Contract.IVelodromeTransactor.contract.Transfer(opts)
+func (_Velodrome *VelodromeRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Velodrome.Contract.VelodromeTransactor.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_IVelodrome *IVelodromeRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _IVelodrome.Contract.IVelodromeTransactor.contract.Transact(opts, method, params...)
+func (_Velodrome *VelodromeRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _Velodrome.Contract.VelodromeTransactor.contract.Transact(opts, method, params...)
 }
 
 // Call invokes the (constant) contract method with params as input values and
 // sets the output to result. The result type might be a single field for simple
 // returns, a slice of interfaces for anonymous returns and a struct for named
 // returns.
-func (_IVelodrome *IVelodromeCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
-	return _IVelodrome.Contract.contract.Call(opts, result, method, params...)
+func (_Velodrome *VelodromeCallerRaw) Call(opts *bind.CallOpts, result *[]interface{}, method string, params ...interface{}) error {
+	return _Velodrome.Contract.contract.Call(opts, result, method, params...)
 }
 
 // Transfer initiates a plain transaction to move funds to the contract, calling
 // its default method if one is available.
-func (_IVelodrome *IVelodromeTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
-	return _IVelodrome.Contract.contract.Transfer(opts)
+func (_Velodrome *VelodromeTransactorRaw) Transfer(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _Velodrome.Contract.contract.Transfer(opts)
 }
 
 // Transact invokes the (paid) contract method with params as input values.
-func (_IVelodrome *IVelodromeTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
-	return _IVelodrome.Contract.contract.Transact(opts, method, params...)
+func (_Velodrome *VelodromeTransactorRaw) Transact(opts *bind.TransactOpts, method string, params ...interface{}) (*types.Transaction, error) {
+	return _Velodrome.Contract.contract.Transact(opts, method, params...)
 }
 
 // Slot0 is a free data retrieval call binding the contract method 0x3850c7bd.
 //
 // Solidity: function slot0() view returns(uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, bool unlocked)
-func (_IVelodrome *IVelodromeCaller) Slot0(opts *bind.CallOpts) (struct {
+func (_Velodrome *VelodromeCaller) Slot0(opts *bind.CallOpts) (struct {
 	SqrtPriceX96               *big.Int
 	Tick                       *big.Int
 	ObservationIndex           uint16
@@ -192,7 +192,7 @@ func (_IVelodrome *IVelodromeCaller) Slot0(opts *bind.CallOpts) (struct {
 	Unlocked                   bool
 }, error) {
 	var out []interface{}
-	err := _IVelodrome.contract.Call(opts, &out, "slot0")
+	err := _Velodrome.contract.Call(opts, &out, "slot0")
 
 	outstruct := new(struct {
 		SqrtPriceX96               *big.Int
@@ -220,7 +220,7 @@ func (_IVelodrome *IVelodromeCaller) Slot0(opts *bind.CallOpts) (struct {
 // Slot0 is a free data retrieval call binding the contract method 0x3850c7bd.
 //
 // Solidity: function slot0() view returns(uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, bool unlocked)
-func (_IVelodrome *IVelodromeSession) Slot0() (struct {
+func (_Velodrome *VelodromeSession) Slot0() (struct {
 	SqrtPriceX96               *big.Int
 	Tick                       *big.Int
 	ObservationIndex           uint16
@@ -228,13 +228,13 @@ func (_IVelodrome *IVelodromeSession) Slot0() (struct {
 	ObservationCardinalityNext uint16
 	Unlocked                   bool
 }, error) {
-	return _IVelodrome.Contract.Slot0(&_IVelodrome.CallOpts)
+	return _Velodrome.Contract.Slot0(&_Velodrome.CallOpts)
 }
 
 // Slot0 is a free data retrieval call binding the contract method 0x3850c7bd.
 //
 // Solidity: function slot0() view returns(uint160 sqrtPriceX96, int24 tick, uint16 observationIndex, uint16 observationCardinality, uint16 observationCardinalityNext, bool unlocked)
-func (_IVelodrome *IVelodromeCallerSession) Slot0() (struct {
+func (_Velodrome *VelodromeCallerSession) Slot0() (struct {
 	SqrtPriceX96               *big.Int
 	Tick                       *big.Int
 	ObservationIndex           uint16
@@ -242,15 +242,15 @@ func (_IVelodrome *IVelodromeCallerSession) Slot0() (struct {
 	ObservationCardinalityNext uint16
 	Unlocked                   bool
 }, error) {
-	return _IVelodrome.Contract.Slot0(&_IVelodrome.CallOpts)
+	return _Velodrome.Contract.Slot0(&_Velodrome.CallOpts)
 }
 
 // Token0 is a free data retrieval call binding the contract method 0x0dfe1681.
 //
 // Solidity: function token0() view returns(address)
-func (_IVelodrome *IVelodromeCaller) Token0(opts *bind.CallOpts) (common.Address, error) {
+func (_Velodrome *VelodromeCaller) Token0(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _IVelodrome.contract.Call(opts, &out, "token0")
+	err := _Velodrome.contract.Call(opts, &out, "token0")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -265,23 +265,23 @@ func (_IVelodrome *IVelodromeCaller) Token0(opts *bind.CallOpts) (common.Address
 // Token0 is a free data retrieval call binding the contract method 0x0dfe1681.
 //
 // Solidity: function token0() view returns(address)
-func (_IVelodrome *IVelodromeSession) Token0() (common.Address, error) {
-	return _IVelodrome.Contract.Token0(&_IVelodrome.CallOpts)
+func (_Velodrome *VelodromeSession) Token0() (common.Address, error) {
+	return _Velodrome.Contract.Token0(&_Velodrome.CallOpts)
 }
 
 // Token0 is a free data retrieval call binding the contract method 0x0dfe1681.
 //
 // Solidity: function token0() view returns(address)
-func (_IVelodrome *IVelodromeCallerSession) Token0() (common.Address, error) {
-	return _IVelodrome.Contract.Token0(&_IVelodrome.CallOpts)
+func (_Velodrome *VelodromeCallerSession) Token0() (common.Address, error) {
+	return _Velodrome.Contract.Token0(&_Velodrome.CallOpts)
 }
 
 // Token1 is a free data retrieval call binding the contract method 0xd21220a7.
 //
 // Solidity: function token1() view returns(address)
-func (_IVelodrome *IVelodromeCaller) Token1(opts *bind.CallOpts) (common.Address, error) {
+func (_Velodrome *VelodromeCaller) Token1(opts *bind.CallOpts) (common.Address, error) {
 	var out []interface{}
-	err := _IVelodrome.contract.Call(opts, &out, "token1")
+	err := _Velodrome.contract.Call(opts, &out, "token1")
 
 	if err != nil {
 		return *new(common.Address), err
@@ -296,34 +296,34 @@ func (_IVelodrome *IVelodromeCaller) Token1(opts *bind.CallOpts) (common.Address
 // Token1 is a free data retrieval call binding the contract method 0xd21220a7.
 //
 // Solidity: function token1() view returns(address)
-func (_IVelodrome *IVelodromeSession) Token1() (common.Address, error) {
-	return _IVelodrome.Contract.Token1(&_IVelodrome.CallOpts)
+func (_Velodrome *VelodromeSession) Token1() (common.Address, error) {
+	return _Velodrome.Contract.Token1(&_Velodrome.CallOpts)
 }
 
 // Token1 is a free data retrieval call binding the contract method 0xd21220a7.
 //
 // Solidity: function token1() view returns(address)
-func (_IVelodrome *IVelodromeCallerSession) Token1() (common.Address, error) {
-	return _IVelodrome.Contract.Token1(&_IVelodrome.CallOpts)
+func (_Velodrome *VelodromeCallerSession) Token1() (common.Address, error) {
+	return _Velodrome.Contract.Token1(&_Velodrome.CallOpts)
 }
 
 // Swap is a paid mutator transaction binding the contract method 0x128acb08.
 //
 // Solidity: function swap(address recipient, bool zeroForOne, int256 amountSpecified, uint160 sqrtPriceLimitX96, bytes data) returns(int256 amount0, int256 amount1)
-func (_IVelodrome *IVelodromeTransactor) Swap(opts *bind.TransactOpts, recipient common.Address, zeroForOne bool, amountSpecified *big.Int, sqrtPriceLimitX96 *big.Int, data []byte) (*types.Transaction, error) {
-	return _IVelodrome.contract.Transact(opts, "swap", recipient, zeroForOne, amountSpecified, sqrtPriceLimitX96, data)
+func (_Velodrome *VelodromeTransactor) Swap(opts *bind.TransactOpts, recipient common.Address, zeroForOne bool, amountSpecified *big.Int, sqrtPriceLimitX96 *big.Int, data []byte) (*types.Transaction, error) {
+	return _Velodrome.contract.Transact(opts, "swap", recipient, zeroForOne, amountSpecified, sqrtPriceLimitX96, data)
 }
 
 // Swap is a paid mutator transaction binding the contract method 0x128acb08.
 //
 // Solidity: function swap(address recipient, bool zeroForOne, int256 amountSpecified, uint160 sqrtPriceLimitX96, bytes data) returns(int256 amount0, int256 amount1)
-func (_IVelodrome *IVelodromeSession) Swap(recipient common.Address, zeroForOne bool, amountSpecified *big.Int, sqrtPriceLimitX96 *big.Int, data []byte) (*types.Transaction, error) {
-	return _IVelodrome.Contract.Swap(&_IVelodrome.TransactOpts, recipient, zeroForOne, amountSpecified, sqrtPriceLimitX96, data)
+func (_Velodrome *VelodromeSession) Swap(recipient common.Address, zeroForOne bool, amountSpecified *big.Int, sqrtPriceLimitX96 *big.Int, data []byte) (*types.Transaction, error) {
+	return _Velodrome.Contract.Swap(&_Velodrome.TransactOpts, recipient, zeroForOne, amountSpecified, sqrtPriceLimitX96, data)
 }
 
 // Swap is a paid mutator transaction binding the contract method 0x128acb08.
 //
 // Solidity: function swap(address recipient, bool zeroForOne, int256 amountSpecified, uint160 sqrtPriceLimitX96, bytes data) returns(int256 amount0, int256 amount1)
-func (_IVelodrome *IVelodromeTransactorSession) Swap(recipient common.Address, zeroForOne bool, amountSpecified *big.Int, sqrtPriceLimitX96 *big.Int, data []byte) (*types.Transaction, error) {
-	return _IVelodrome.Contract.Swap(&_IVelodrome.TransactOpts, recipient, zeroForOne, amountSpecified, sqrtPriceLimitX96, data)
+func (_Velodrome *VelodromeTransactorSession) Swap(recipient common.Address, zeroForOne bool, amountSpecified *big.Int, sqrtPriceLimitX96 *big.Int, data []byte) (*types.Transaction, error) {
+	return _Velodrome.Contract.Swap(&_Velodrome.TransactOpts, recipient, zeroForOne, amountSpecified, sqrtPriceLimitX96, data)
 }

@@ -20,7 +20,7 @@ func convertConfigDataToConfig(data constants.ConfigData) Config {
 		VaultAddress:  data.VaultAddress,
 		VaultDecimals: data.VaultDecimals,
 		SDai:          data.SDai,
-		LiquidityPool: data.VelodromePool,
+		LiquidityPool: data.LiquidityPool,
 	}
 }
 

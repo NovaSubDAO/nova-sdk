@@ -269,7 +269,7 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 }
 
 func (sdk *SdkOptimism) createSwapData(callTo common.Address, approveTo common.Address, sendingAssetId common.Address, receivingAssetId common.Address, fromAmount *big.Int, fromStableTosDai bool) ([]optimismContracts.LibSwapSwapData, error) {
-	poolABI, err := abi.JSON(strings.NewReader(optimismContracts.VelodromeMetaData.ABI))
+	poolABI, err := abi.JSON(strings.NewReader(optimismContracts.VelodromePoolMetaData.ABI))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse ABI: %w", err)
 	}
@@ -279,9 +279,9 @@ func (sdk *SdkOptimism) createSwapData(callTo common.Address, approveTo common.A
 		return nil, fmt.Errorf("Error loading client: %w", err)
 	}
 
-	veloPool, err := optimismContracts.NewVelodrome(callTo, client)
+	veloPool, err := optimismContracts.NewVelodromePool(callTo, client)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create IVelodrome instance: %w", err)
+		return nil, fmt.Errorf("Failed to create VelodromePool instance: %w", err)
 	}
 
 	slot0Data, err := veloPool.Slot0(nil)

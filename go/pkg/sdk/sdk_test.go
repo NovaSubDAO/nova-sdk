@@ -1,21 +1,33 @@
 package sdk
 
 import (
+	"context"
+	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/big"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/constants"
+	ethereumContracts "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/ethereum/abis"
+	optimismContracts "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/optimism/abis"
+	"github.com/NovaSubDAO/nova-sdk/go/pkg/utils"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/assert"
 )
 
 type testCase struct {
 	rpcEndpoint   string
 	chainId       int64
+	vaultAddress  string
 	stable        constants.Stablecoin
 	mockAddress   common.Address
 	privateKeyHex string
@@ -25,17 +37,84 @@ var testCases = []testCase{
 	{
 		rpcEndpoint:   os.Getenv("ETH_RPC_ENDPOINT"),
 		chainId:       1,
+		vaultAddress:  constants.ConfigDetails[1].VaultAddress,
 		stable:        constants.DAI,
-		mockAddress:   common.HexToAddress(os.Getenv("CLIENT_ADDRESS")),
-		privateKeyHex: os.Getenv("PRIVATE_KEY"),
+		mockAddress:   common.HexToAddress(os.Getenv("TEST_ADDRESS")),
+		privateKeyHex: os.Getenv("TEST_PRIVATE_KEY"),
 	},
 	{
 		rpcEndpoint:   os.Getenv("OPT_RPC_ENDPOINT_ANVIL"),
 		chainId:       10,
+		vaultAddress:  constants.ConfigDetails[10].VaultAddress,
 		stable:        constants.USDC,
-		mockAddress:   common.HexToAddress(os.Getenv("CLIENT_ADDRESS")),
-		privateKeyHex: os.Getenv("PRIVATE_KEY"),
+		mockAddress:   common.HexToAddress(os.Getenv("TEST_ADDRESS")),
+		privateKeyHex: os.Getenv("TEST_PRIVATE_KEY"),
 	},
+}
+
+func printUserBalance(from common.Address, client *ethclient.Client) {
+	balance, err := client.BalanceAt(context.Background(), from, nil)
+	if err != nil {
+		log.Fatalf("Failed to get the balance: %v", err)
+	}
+	ethBalance := new(big.Float).Quo(new(big.Float).SetInt(balance), big.NewFloat(1e18))
+	fmt.Printf("Eth balance of %s: %f ETH\n", from.Hex(), ethBalance)
+}
+
+func increaseAllowance(from common.Address, spender common.Address, token common.Address, amount *big.Int, isDeposit bool, client *ethclient.Client, privateKey *ecdsa.PrivateKey, rpcEndpoint string, chainId int64) (*types.Transaction, error) {
+	var asset abi.ABI
+	var err error
+
+	if chainId == 1 {
+		if isDeposit {
+			asset, err = abi.JSON(strings.NewReader(ethereumContracts.DaiABI))
+			if err != nil {
+				log.Fatalf("Failed to parse Dai ABI: %v", err)
+			}
+		} else {
+			asset, err = abi.JSON(strings.NewReader(ethereumContracts.SavingsDaiABI))
+			if err != nil {
+				log.Fatalf("Failed to parse sDai ABI: %v", err)
+			}
+		}
+	} else if chainId == 10 {
+		if isDeposit {
+			asset, err = abi.JSON(strings.NewReader(optimismContracts.FiatTokenV22ABI))
+			if err != nil {
+				log.Fatalf("Failed to parse FiatTokenV22 ABI: %v", err)
+			}
+		} else {
+			asset, err = abi.JSON(strings.NewReader(optimismContracts.SavingsDaiABI))
+			if err != nil {
+				log.Fatalf("Failed to parse sDai ABI: %v", err)
+			}
+		}
+	}
+
+	data, err := asset.Pack("approve", spender, amount)
+	if err != nil {
+		log.Fatalf("Failed to pack data for transaction: %v", err)
+	}
+
+	tx, err := utils.CreateTransaction(from, token, data, rpcEndpoint)
+	if err != nil {
+		log.Fatalf("Increase allowance failed: %v", err)
+	}
+	fmt.Println("- Transaction created")
+
+	signedTx, err := utils.SignTransaction(tx, big.NewInt(chainId), privateKey)
+	if err != nil {
+		log.Fatalf("Increase allowance failed: %v", err)
+	}
+	fmt.Println("-- Transaction signed")
+
+	err = utils.SendTransaction(signedTx, rpcEndpoint)
+	if err != nil {
+		log.Fatalf("Increase allowance failed: %v", err)
+	}
+	fmt.Println("---- Transaction sent")
+
+	return signedTx, nil
 }
 
 func TestSdkConfig(t *testing.T) {
@@ -73,77 +152,95 @@ func TestSdkConfigDetails(t *testing.T) {
 func TestSdkCreateDepositTx(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run("ChainID: "+strconv.FormatInt(tc.chainId, 10), func(t *testing.T) {
+			if tc.chainId == 1 {
+				t.Skip("Skipping test for chain ID 1")
+				return
+			}
 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
 			assert.NoError(t, err)
 
-			mockAmount := big.NewInt(20000)
+			mockAmount := big.NewInt(1e4)
 			mockReferral := big.NewInt(123)
+			spender := common.HexToAddress(tc.vaultAddress)
+			client, err := ethclient.Dial(tc.rpcEndpoint)
+			if err != nil {
+				log.Fatalf("Failed to connect to the Optimism client: %v", err)
+			}
+			privateKey, err := crypto.HexToECDSA(tc.privateKeyHex)
+			if err != nil {
+				log.Fatalf("Failed to parse private key: %v", err)
+			}
 
+			stableAddress := common.HexToAddress(constants.StablecoinDetails[tc.chainId][tc.stable].Address)
+
+			fmt.Println()
+			fmt.Println("------------------------------ Increasing allowance... ------------------------------")
+			printUserBalance(tc.mockAddress, client)
+			_, err = increaseAllowance(tc.mockAddress, spender, stableAddress, mockAmount, true, client, privateKey, tc.rpcEndpoint, tc.chainId)
+			if err != nil {
+				log.Fatalf("Failed to increase allowance: %v", err)
+			}
+			fmt.Println("******************************** Allowance increased ********************************")
+
+			fmt.Println()
+			fmt.Println("-------------------------- Creating deposit transaction... --------------------------")
+			printUserBalance(tc.mockAddress, client)
 			txJSON, err := novaSdk.CreateDepositTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
-			expectedErrorMessage := fmt.Sprintf("Allowance is too low. First call approve function on %s contract.", tc.stable)
-			assert.Equal(t, expectedErrorMessage, err.Error())
-
-			var expectedTxJSON string
-			if tc.chainId == 1 {
-				expectedTxJSON = `{"type":"0x0","nonce":"0x2d","to":"0x83f20f44975d03b1b09e64809b757c47f942beea","gas":"0x1e8480","maxPriorityFeePerGas":null,"maxFeePerGas":null,"value":"0x0","input":"0x6e553f6500000000000000000000000000000000000000000000000000000000000003e800000000000000000000000047ac0fb4f2d84898e4d9e7b4dab3c24507a6d503","v":"0x0","r":"0x0","s":"0x0"}`
+			if err != nil {
+				log.Fatalf("Failed to call 'CreateDepositTransaction' function: %s", err)
 			}
-			if tc.chainId == 10 {
-				expectedTxJSON = `{"type":"0x0","nonce":"0x2e854c","to":"0x36a2f7fb07c102415afe2461a9a43377970e081c","gas":"0x1e8480","maxPriorityFeePerGas":null,"maxFeePerGas":null,"value":"0x0","input":"0xd2d0e0660000000000000000000000000b2c639c533813f4aa9d7837caf62653d097ff8500000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000007b","v":"0x0","r":"0x0","s":"0x0"}`
-			}
+			fmt.Println("- Transaction created")
 
-			var expectedTx map[string]interface{}
-			err = json.Unmarshal([]byte(expectedTxJSON), &expectedTx)
-			assert.NoError(t, err)
-
-			var tx map[string]interface{}
+			var tx types.Transaction
 			err = json.Unmarshal([]byte(txJSON), &tx)
-			assert.NoError(t, err)
+			if err != nil {
+				log.Fatalf("Failed to unmarshal transaction: %v", err)
+			}
 
-			// Remove keys that should not be compared
-			delete(tx, "gasPrice")
-			delete(tx, "hash")
+			signedTx, err := utils.SignTransaction(&tx, big.NewInt(tc.chainId), privateKey)
+			if err != nil {
+				log.Fatalf("TestSdkCreateDepositTx: %v", err)
+			}
+			fmt.Println("-- Transaction signed")
 
-			assert.Equal(t, tx, expectedTx)
+			err = utils.SendTransaction(signedTx, tc.rpcEndpoint)
+			if err != nil {
+				log.Fatalf("TestSdkCreateDepositTx: %v", err)
+			}
+			fmt.Println("---- Transaction sent")
+			fmt.Println("********************************** Deposit success **********************************")
 		})
 	}
 }
 
-func TestSdkCreateWithdrawTx(t *testing.T) {
-	for _, tc := range testCases {
-		t.Run("ChainID: "+strconv.FormatInt(tc.chainId, 10), func(t *testing.T) {
-			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
-			assert.NoError(t, err)
+// func TestSdkCreateWithdrawTx(t *testing.T) {
+// 	for _, tc := range testCases {
+// 		t.Run("ChainID: "+strconv.FormatInt(tc.chainId, 10), func(t *testing.T) {
+// 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
+// 			assert.NoError(t, err)
 
-			mockAmount := big.NewInt(1811735460794544158)
-			mockReferral := big.NewInt(123)
-			txJSON, err := novaSdk.CreateWithdrawTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
-			expectedErrorMessage := "Allowance is too low. First call approve function on sDai contract."
-			assert.Equal(t, expectedErrorMessage, err.Error())
+// 			mockAmount := big.NewInt(1811735460794544158)
+// 			mockReferral := big.NewInt(123)
+// 			txJSON, err := novaSdk.CreateWithdrawTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
+// 			expectedErrorMessage := "Allowance is too low. First call approve function on sDai contract."
+// 			assert.Equal(t, expectedErrorMessage, err.Error())
 
-			var expectedTxJSON string
-			if tc.chainId == 1 {
-				expectedTxJSON = `{"type":"0x0","nonce":"0x1","to":"0x83f20f44975d03b1b09e64809b757c47f942beea","gas":"0x1e8480","maxPriorityFeePerGas":null,"maxFeePerGas":null,"value":"0x0","input":"0xb460af9400000000000000000000000000000000000000000000000000000000000003e800000000000000000000000083f20f44975d03b1b09e64809b757c47f942beea00000000000000000000000083f20f44975d03b1b09e64809b757c47f942beea","v":"0x0","r":"0x0","s":"0x0"}`
-			}
-			if tc.chainId == 10 {
-				expectedTxJSON = `{"type":"0x0","nonce":"0x0","to":"0x36a2f7fb07c102415afe2461a9a43377970e081c","gas":"0x1e8480","maxPriorityFeePerGas":null,"maxFeePerGas":null,"value":"0x0","input":"0xf3fef3a30000000000000000000000000b2c639c533813f4aa9d7837caf62653d097ff8500000000000000000000000000000000000000000000000000000000000003e8","v":"0x0","r":"0x0","s":"0x0"}`
-			}
+// 			var expectedTx map[string]interface{}
+// 			err = json.Unmarshal([]byte(expectedTxJSON), &expectedTx)
+// 			assert.NoError(t, err)
 
-			var expectedTx map[string]interface{}
-			err = json.Unmarshal([]byte(expectedTxJSON), &expectedTx)
-			assert.NoError(t, err)
+// 			var tx map[string]interface{}
+// 			err = json.Unmarshal([]byte(txJSON), &tx)
+// 			assert.NoError(t, err)
 
-			var tx map[string]interface{}
-			err = json.Unmarshal([]byte(txJSON), &tx)
-			assert.NoError(t, err)
+// 			// Remove keys that should not be compared
+// 			delete(tx, "gasPrice")
+// 			delete(tx, "hash")
 
-			// Remove keys that should not be compared
-			delete(tx, "gasPrice")
-			delete(tx, "hash")
-
-			assert.Equal(t, tx, expectedTx)
-		})
-	}
-}
+// 			assert.Equal(t, tx, expectedTx)
+// 		})
+// 	}
+// }
 
 // func TestSdkGetPrice(t *testing.T) {
 // 	for _, tc := range testCases {

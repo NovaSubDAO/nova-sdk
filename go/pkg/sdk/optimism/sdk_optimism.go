@@ -1,12 +1,9 @@
 package optimism
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/big"
-	"os"
 	"strings"
 	"time"
 
@@ -14,11 +11,8 @@ import (
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/constants"
 	optimismContracts "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/optimism/abis"
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/utils"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -270,39 +264,6 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 	return percentageChange, expectedPriceFloat, executedPriceFloat, nil
 }
 
-func (sdk *SdkOptimism) createTransaction(from common.Address, to common.Address, data []byte) (*types.Transaction, error) {
-	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
-	if err != nil {
-		return nil, fmt.Errorf("Error loading client: %w", err)
-	}
-
-	nonce, err := client.PendingNonceAt(context.Background(), from)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get nonce: %v", err)
-	}
-
-	gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("failed to suggest gas price: %v", err)
-	}
-
-	msg := ethereum.CallMsg{From: from, To: &to, GasPrice: gasPrice, Value: big.NewInt(0), Data: data}
-	gasLimit, err := client.EstimateGas(context.Background(), msg)
-	if err != nil {
-		log.Printf("Gas estimation failed, using fallback gas limit: %v", err)
-		gasLimit = 2000000
-	}
-
-	fmt.Println("Creating transaction with nonce: ", nonce, ", gas price: ", gasPrice.String(), ", data: ", data)
-
-	tx := types.NewTransaction(nonce, to, big.NewInt(0), gasLimit, gasPrice, data)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create transaction: %v", err)
-	}
-
-	return tx, nil
-}
-
 func (sdk *SdkOptimism) createSwapData(callTo common.Address, approveTo common.Address, sendingAssetId common.Address, receivingAssetId common.Address, fromAmount *big.Int, fromStableTosDai bool) ([]optimismContracts.LibSwapSwapData, error) {
 	poolABI, err := abi.JSON(strings.NewReader(optimismContracts.VelodromePoolMetaData.ABI))
 	if err != nil {
@@ -384,7 +345,6 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 	if err != nil {
 		return "", fmt.Errorf("Failed to create SwapData instance: %v", err)
 	}
-	// fmt.Println("SwapData: ",swapData)
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
@@ -396,51 +356,17 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 		return "", fmt.Errorf("Failed to load FiatTokenV22 contract: %w", err)
 	}
 
-	/*//////////////////////////////////////////////////////////////
-	                       FOR TESTING PURPOSE
-	//////////////////////////////////////////////////////////////*/
-	tx, err := sdk.createIncreaseAllowanceTransaction(fromAddress, vaultAddress, stableAddress, amount, true)
-	if err != nil {
-		log.Fatalf("Failed to increase allowance: %v", err)
-	}
-
-	privateKey, err := crypto.HexToECDSA(os.Getenv("PRIVATE_KEY"))
-	if err != nil {
-		return "", fmt.Errorf("Failed to parse private key: %v", err)
-	}
-
-	signedTx, err := utils.SignTransaction(tx, big.NewInt(10), privateKey)
-	if err != nil {
-		return "", fmt.Errorf("Failed to sign 'increaseAllowance' transaction: %v", err)
-	}
-	fmt.Print("SignedTransaction allowance: ", signedTx)
-
-	err = utils.SendTransaction(signedTx, client)
-
-	if err != nil {
-		return "", fmt.Errorf("Failed to send increaseAllowance transaction: %v", err)
-	}
-
-	balance, err := client.BalanceAt(context.Background(), fromAddress, nil)
-	if err != nil {
-		log.Fatalf("Failed to get the balance: %v", err)
-	}
-	ethBalance := new(big.Float).Quo(new(big.Float).SetInt(balance), big.NewFloat(1e18))
-
-	fmt.Printf("Balance of %s: %f ETH\n", fromAddress.Hex(), ethBalance)
-
 	balanceUSDC, err := stableContract.BalanceOf(nil, fromAddress)
 	if err != nil {
 		return "", fmt.Errorf("Failed to get USDC user's balance: %v", err)
 	}
 	fmt.Println("USDC balance of user: ", balanceUSDC)
-	//////////////////////////////////////////////////////////////*/
+	fmt.Println("USDC amount to swap:  ", amount)
 
 	result, err := stableContract.Allowance(nil, fromAddress, vaultAddress)
 	if err != nil {
 		return "", fmt.Errorf("Failed to call Allowance function: %w", err)
 	}
-	fmt.Println("Allowance result: ", result)
 
 	if amount.Cmp(result) > 0 {
 		return "", fmt.Errorf("Allowance is too low. First call approve function on USDC contract.")
@@ -456,25 +382,13 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 	if err != nil {
 		return "", fmt.Errorf("ABI pack failed: %v", err)
 	}
-	fmt.Println(data)
 
-	tx, err = sdk.createTransaction(fromAddress, vaultAddress, data)
+	tx, err := utils.CreateTransaction(fromAddress, vaultAddress, data, sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("Failed to create 'deposit' transaction: %v", err)
 	}
 
-	signedTx, err = utils.SignTransaction(tx, big.NewInt(10), privateKey)
-	if err != nil {
-		return "", fmt.Errorf("Signed transaction failed: %v", err)
-	}
-	fmt.Print("SignedTransaction: ", signedTx)
-
-	err = utils.SendTransaction(signedTx, client)
-	if err != nil {
-		return "", fmt.Errorf("Failed to send increaseAllowance transaction: %v", err)
-	}
-
-	txJSON, err := json.Marshal(signedTx)
+	txJSON, err := json.Marshal(tx)
 	if err != nil {
 		return "", fmt.Errorf("Failed to marshal transaction: %w", err)
 	}
@@ -507,42 +421,6 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 		return "", fmt.Errorf("Failed to load SavingsDai contract: %w", err)
 	}
 
-	/*//////////////////////////////////////////////////////////////
-	                       FOR TESTING PURPOSE
-	//////////////////////////////////////////////////////////////*/
-	tx, err := sdk.createIncreaseAllowanceTransaction(fromAddress, vaultAddress, sDaiAddress, amount, false)
-	if err != nil {
-		log.Fatalf("Failed to increase allowance: %v", err)
-	}
-
-	privateKey, err := crypto.HexToECDSA(os.Getenv("PRIVATE_KEY"))
-	if err != nil {
-		return "", fmt.Errorf("Failed to parse private key: %v", err)
-	}
-
-	signedTx, err := utils.SignTransaction(tx, big.NewInt(10), privateKey)
-	if err != nil {
-		return "", fmt.Errorf("Failed to get sDai user's balance: %v", err)
-	}
-
-	err = utils.SendTransaction(signedTx, client)
-
-	if err != nil {
-		return "", fmt.Errorf("Failed to send increaseAllowance transaction: %v", err)
-	}
-
-	balance, err := client.BalanceAt(context.Background(), fromAddress, nil)
-	if err != nil {
-		log.Fatalf("Failed to get the balance: %v", err)
-	}
-	ethBalance := new(big.Float).Quo(new(big.Float).SetInt(balance), big.NewFloat(1e18))
-
-	fmt.Printf("Balance of %s: %f ETH\n", fromAddress.Hex(), ethBalance)
-
-	balanceSDai, _ := sDaiContract.BalanceOf(nil, fromAddress)
-	fmt.Println("SDai balance of user: ", balanceSDai)
-	//////////////////////////////////////////////////////////////*/
-
 	result, err := sDaiContract.Allowance(nil, fromAddress, vaultAddress)
 	if err != nil {
 		return "", fmt.Errorf("Failed to call Allowance function: %w", err)
@@ -564,62 +442,15 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 		return "", fmt.Errorf("ABI pack failed: %v", err)
 	}
 
-	tx, err = sdk.createTransaction(fromAddress, vaultAddress, data)
+	tx, err := utils.CreateTransaction(fromAddress, vaultAddress, data, sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("Failed to create 'withdraw' transaction: %v", err)
 	}
 
-	signedTx, err = utils.SignTransaction(tx, big.NewInt(10), privateKey)
-	if err != nil {
-		return "", fmt.Errorf("Signed transaction failed: %v", err)
-	}
-	fmt.Print(signedTx)
-
-	err = utils.SendTransaction(signedTx, client)
-	if err != nil {
-		return "", fmt.Errorf("Failed to send increaseAllowance transaction: %v", err)
-	}
-
-	txJSON, err := json.Marshal(signedTx)
+	txJSON, err := json.Marshal(tx)
 	if err != nil {
 		return "", fmt.Errorf("Failed to marshal transaction: %w", err)
 	}
 
 	return string(txJSON), nil
-}
-
-/*
-///////////////////////////////////////////////////////////////////
-
-	FOR TEST PURPOSES, THIS SHOULD BE ON ../UTILS/TRANSACTION.GO
-
-//////////////////////////////////////////////////////////////////
-*/
-func (sdk *SdkOptimism) createIncreaseAllowanceTransaction(from common.Address, spender common.Address, token common.Address, amount *big.Int, isDeposit bool) (*types.Transaction, error) {
-	var asset abi.ABI
-	var err error
-
-	if isDeposit {
-		asset, err = abi.JSON(strings.NewReader(optimismContracts.FiatTokenV22ABI))
-		if err != nil {
-			log.Fatalf("Failed to parse USDC ABI: %v", err)
-		}
-	} else {
-		asset, err = abi.JSON(strings.NewReader(optimismContracts.SavingsDaiABI))
-		if err != nil {
-			log.Fatalf("Failed to parse sDai ABI: %v", err)
-		}
-	}
-
-	data, err := asset.Pack("approve", spender, amount)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to pack data for transaction: %v", err)
-	}
-
-	tx, err := sdk.createTransaction(from, token, data)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create transaction: %v", err)
-	}
-
-	return tx, nil
 }

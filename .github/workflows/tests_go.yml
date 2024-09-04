@@ -9,6 +9,7 @@ on:
 env:
   ETH_RPC_ENDPOINT: ${{ secrets.ETH_RPC_ENDPOINT }}
   OPT_RPC_ENDPOINT: ${{ secrets.OPT_RPC_ENDPOINT }}
+  TEST_ADDRESS: ${{ secrets.TEST_ADDRESS }}
 
 jobs:
   test:
@@ -43,6 +44,20 @@ jobs:
 
       - name: Compile Solidity artifacts
         run: make compile
+        working-directory: go
+
+      - name: Start Anvil
+        run: |
+          nohup anvil --fork-url $OPT_RPC_ENDPOINT &
+        working-directory: go
+
+      - name: Wait for Anvil to start
+        run: sleep 10
+
+      - name: Set initial balance for test address
+        run: |
+          curl http://localhost:8545 -X POST -H "Content-Type: application/json" \
+            --data '{"method":"anvil_setBalance","params":["'"$TEST_ADDRESS"'", "0x56BC75E2D63100000"],"id":1,"jsonrpc":"2.0"}'
         working-directory: go
 
       - name: Run tests

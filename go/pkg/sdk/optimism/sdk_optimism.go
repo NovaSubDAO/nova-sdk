@@ -418,7 +418,6 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 	if err != nil {
 		return "", fmt.Errorf("failed to call Allowance function: %w", err)
 	}
-	fmt.Println("Allowance result: ", result)
 
 	if amount.Cmp(result) > 0 {
 		return "", fmt.Errorf("allowance is too low. First call approve function on sDai contract")

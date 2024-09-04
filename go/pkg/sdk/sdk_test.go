@@ -29,6 +29,7 @@ type testCase struct {
 	chainId       int64
 	vaultAddress  string
 	stable        constants.Stablecoin
+	sDai          common.Address
 	mockAddress   common.Address
 	privateKeyHex string
 }
@@ -39,6 +40,7 @@ var testCases = []testCase{
 		chainId:       1,
 		vaultAddress:  constants.ConfigDetails[1].VaultAddress,
 		stable:        constants.DAI,
+		sDai:          common.HexToAddress(constants.ConfigDetails[1].SDai),
 		mockAddress:   common.HexToAddress(os.Getenv("TEST_ADDRESS")),
 		privateKeyHex: os.Getenv("TEST_PRIVATE_KEY"),
 	},
@@ -47,6 +49,7 @@ var testCases = []testCase{
 		chainId:       10,
 		vaultAddress:  constants.ConfigDetails[10].VaultAddress,
 		stable:        constants.USDC,
+		sDai:          common.HexToAddress(constants.ConfigDetails[10].SDai),
 		mockAddress:   common.HexToAddress(os.Getenv("TEST_ADDRESS")),
 		privateKeyHex: os.Getenv("TEST_PRIVATE_KEY"),
 	},
@@ -59,6 +62,54 @@ func printUserBalance(from common.Address, client *ethclient.Client) {
 	}
 	ethBalance := new(big.Float).Quo(new(big.Float).SetInt(balance), big.NewFloat(1e18))
 	fmt.Printf("Eth balance of %s: %f ETH\n", from.Hex(), ethBalance)
+}
+
+func getAssetUserBalance(from common.Address, asset common.Address, client *ethclient.Client, chainId int64, isDeposit bool) (*big.Int, error) {
+	var balanceAsset *big.Int
+
+	if chainId == 1 {
+		if isDeposit {
+			assetContract, err := ethereumContracts.NewDaiCaller(asset, client)
+			if err != nil {
+				return nil, fmt.Errorf("failed to load Dai contract: %w", err)
+			}
+			balanceAsset, err = assetContract.BalanceOf(nil, from)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get Dai user's balance: %v", err)
+			}
+		} else {
+			assetContract, err := optimismContracts.NewSavingsDaiCaller(asset, client)
+			if err != nil {
+				return nil, fmt.Errorf("failed to load SavingsDai contract: %w", err)
+			}
+			balanceAsset, err = assetContract.BalanceOf(nil, from)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get sDai user's balance: %v", err)
+			}
+		}
+	} else if chainId == 10 {
+		if isDeposit {
+			assetContract, err := optimismContracts.NewFiatTokenV22Caller(asset, client)
+			if err != nil {
+				return nil, fmt.Errorf("failed to load FiatTokenV22 contract: %w", err)
+			}
+			balanceAsset, err = assetContract.BalanceOf(nil, from)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get USDC user's balance: %v", err)
+			}
+
+		} else {
+			assetContract, err := optimismContracts.NewSavingsDaiCaller(asset, client)
+			if err != nil {
+				return nil, fmt.Errorf("failed to load SavingsDai contract: %w", err)
+			}
+			balanceAsset, err = assetContract.BalanceOf(nil, from)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get sDai user's balance: %v", err)
+			}
+		}
+	}
+	return balanceAsset, nil
 }
 
 func increaseAllowance(from common.Address, spender common.Address, token common.Address, amount *big.Int, isDeposit bool, privateKey *ecdsa.PrivateKey, rpcEndpoint string, chainId int64) (*types.Transaction, error) {
@@ -182,6 +233,11 @@ func TestSdkCreateDepositTx(t *testing.T) {
 			}
 			fmt.Println("******************************** Allowance increased ********************************")
 
+			initialBalanceUsdc, err := getAssetUserBalance(tc.mockAddress, stableAddress, client, tc.chainId, true)
+			if err != nil {
+				log.Fatalf("Failed to get user's USDC balance: %v", err)
+			}
+
 			fmt.Println()
 			fmt.Println("-------------------------- Creating deposit transaction... --------------------------")
 			printUserBalance(tc.mockAddress, client)
@@ -209,6 +265,14 @@ func TestSdkCreateDepositTx(t *testing.T) {
 			}
 			fmt.Println("---- Transaction sent")
 			fmt.Println("********************************** Deposit success **********************************")
+
+			newBalanceUsdc, err := getAssetUserBalance(tc.mockAddress, stableAddress, client, tc.chainId, true)
+			if err != nil {
+				log.Fatalf("Failed to get user's USDC balance: %v", err)
+			}
+
+			expectedBalanceUsdc := new(big.Int).Sub(initialBalanceUsdc, mockAmount)
+			assert.Equal(t, expectedBalanceUsdc, newBalanceUsdc, "USDC balance should be equal to the initial balance minus the mock amount")
 		})
 	}
 }
@@ -216,50 +280,74 @@ func TestSdkCreateDepositTx(t *testing.T) {
 // func TestSdkCreateWithdrawTx(t *testing.T) {
 // 	for _, tc := range testCases {
 // 		t.Run("ChainID: "+strconv.FormatInt(tc.chainId, 10), func(t *testing.T) {
+// 			if tc.chainId == 1 {
+// 				t.Skip("Skipping test for chain ID 1")
+// 				return
+// 			}
 // 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
 // 			assert.NoError(t, err)
 
-// 			mockAmount := big.NewInt(1811735460794544158)
+// 			mockAmount := big.NewInt(1e8)
 // 			mockReferral := big.NewInt(123)
+// 			spender := common.HexToAddress(tc.vaultAddress)
+// 			client, err := ethclient.Dial(tc.rpcEndpoint)
+// 			if err != nil {
+// 				log.Fatalf("Failed to connect to the Optimism client: %v", err)
+// 			}
+// 			privateKey, err := crypto.HexToECDSA(tc.privateKeyHex)
+// 			if err != nil {
+// 				log.Fatalf("Failed to parse private key: %v", err)
+// 			}
+
+// 			fmt.Println()
+// 			fmt.Println("------------------------------ Increasing allowance... ------------------------------")
+// 			printUserBalance(tc.mockAddress, client)
+// 			_, err = increaseAllowance(tc.mockAddress, spender, tc.sDai, mockAmount, true, privateKey, tc.rpcEndpoint, tc.chainId)
+// 			if err != nil {
+// 				log.Fatalf("Failed to increase allowance: %v", err)
+// 			}
+// 			fmt.Println("******************************** Allowance increased ********************************")
+
+// 			initialBalanceSDai, err := getAssetUserBalance(tc.mockAddress, tc.sDai, client, tc.chainId, true)
+// 			if err != nil {
+// 				log.Fatalf("Failed to get user's sDai balance: %v", err)
+// 			}
+
+// 			fmt.Println()
+// 			fmt.Println("------------------------- Creating withdraw transaction... --------------------------")
+// 			printUserBalance(tc.mockAddress, client)
 // 			txJSON, err := novaSdk.CreateWithdrawTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
-// 			expectedErrorMessage := "Allowance is too low. First call approve function on sDai contract."
-// 			assert.Equal(t, expectedErrorMessage, err.Error())
+// 			if err != nil {
+// 				log.Fatalf("Failed to call 'CreateWithdrawTransaction' function: %s", err)
+// 			}
+// 			fmt.Println("- Transaction created")
 
-// 			var expectedTx map[string]interface{}
-// 			err = json.Unmarshal([]byte(expectedTxJSON), &expectedTx)
-// 			assert.NoError(t, err)
-
-// 			var tx map[string]interface{}
+// 			var tx types.Transaction
 // 			err = json.Unmarshal([]byte(txJSON), &tx)
-// 			assert.NoError(t, err)
+// 			if err != nil {
+// 				log.Fatalf("Failed to unmarshal transaction: %v", err)
+// 			}
 
-// 			// Remove keys that should not be compared
-// 			delete(tx, "gasPrice")
-// 			delete(tx, "hash")
+// 			signedTx, err := utils.SignTransaction(&tx, big.NewInt(tc.chainId), privateKey)
+// 			if err != nil {
+// 				log.Fatalf("TestSdkCreateWithdrawTx: %v", err)
+// 			}
+// 			fmt.Println("-- Transaction signed")
 
-// 			assert.Equal(t, tx, expectedTx)
-// 		})
-// 	}
-// }
+// 			err = utils.SendTransaction(signedTx, tc.rpcEndpoint)
+// 			if err != nil {
+// 				log.Fatalf("TestSdkCreateWithdrawTx: %v", err)
+// 			}
+// 			fmt.Println("---- Transaction sent")
+// 			fmt.Println("********************************** Withdraw success **********************************")
 
-// func TestSdkGetPrice(t *testing.T) {
-// 	for _, tc := range testCases {
-// 		t.Run("ChainID: "+strconv.FormatInt(tc.chainId, 10), func(t *testing.T) {
-// 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
-// 			assert.NoError(t, err)
+// 			newBalanceSDai, err := getAssetUserBalance(tc.mockAddress, tc.sDai, client, tc.chainId, true)
+// 			if err != nil {
+// 				log.Fatalf("Failed to get user's sDai balance: %v", err)
+// 			}
 
-// 			price, err := novaSdk.GetPrice(tc.stable)
-// 			assert.NoError(t, err)
-
-// 			stableDecimals := constants.StablecoinDetails[tc.chainId][tc.stable].Decimals
-// 			base := big.NewInt(10)
-// 			one := new(big.Int).Exp(base, big.NewInt(int64(stableDecimals)), nil)
-
-// 			lowerBound := new(big.Int).Mul(big.NewInt(1), one)
-// 			upperBound := new(big.Int).Mul(big.NewInt(2), one)
-
-// 			assert.True(t, price.Cmp(lowerBound) >= 0, "Price should be at least 1e18")
-// 			assert.True(t, price.Cmp(upperBound) <= 0, "Price should be at most 2e18")
+// 			expectedBalanceSDai := new(big.Int).Sub(initialBalanceSDai, mockAmount)
+// 			assert.Equal(t, expectedBalanceSDai, newBalanceSDai, "sDai balance should be equal to the initial balance minus the mock amount")
 // 		})
 // 	}
 // }

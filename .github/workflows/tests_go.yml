@@ -29,6 +29,14 @@ jobs:
         run: go mod tidy
         working-directory: go
 
+      - name: Install Foundry
+        run: curl -L https://foundry.paradigm.xyz | bash
+        shell: bash
+
+      - name: Install Foundry Tools
+        run: foundryup
+        shell: bash
+
       - name: Install solc
         run: |
           sudo add-apt-repository ppa:ethereum/ethereum

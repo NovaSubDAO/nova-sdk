@@ -30,12 +30,9 @@ jobs:
         working-directory: go
 
       - name: Install Foundry
-        run: curl -L https://foundry.paradigm.xyz | bash
-        shell: bash
-
-      - name: Install Foundry Tools
-        run: foundryup
-        shell: bash
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
       - name: Install solc
         run: |

@@ -24,12 +24,12 @@ type SdkOptimism struct {
 func NewSdkOptimism(cfg *config.Config) (*SdkOptimism, error) {
 	client, err := ethclient.Dial(cfg.RpcEndpoint)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to connect to Optimism client: %w", err)
+		return nil, fmt.Errorf("failed to connect to Optimism client: %w", err)
 	}
 
 	contract, err := optimismContracts.NewSavingsDaiCaller(common.HexToAddress(cfg.SDai), client)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to instantiate contract caller: %w", err)
+		return nil, fmt.Errorf("failed to instantiate contract caller: %w", err)
 	}
 
 	return &SdkOptimism{Config: cfg, Contract: contract}, nil
@@ -50,20 +50,20 @@ func (sdk *SdkOptimism) GetConfig() *config.Config {
 func (sdk *SdkOptimism) getPriceFromInput(input optimismContracts.IQuoterV2QuoteExactInputSingleParams) (*big.Int, error) {
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
-		return nil, fmt.Errorf("Error loading client: %w", err)
+		return nil, fmt.Errorf("error loading client: %w", err)
 	}
 
 	quoterAddress := common.HexToAddress(constants.OptQuoterV2Address)
 	quoter, err := optimismContracts.NewQuoterV2(quoterAddress, client)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to load QuoterV2 contract: %w", err)
+		return nil, fmt.Errorf("failed to load QuoterV2 contract: %w", err)
 	}
 
 	var output []interface{}
 	rawCaller := &optimismContracts.QuoterV2Raw{Contract: quoter}
 	err = rawCaller.Call(nil, &output, "quoteExactInputSingle", input)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to call quoteExactInputSingle function: %w", err)
+		return nil, fmt.Errorf("failed to call quoteExactInputSingle function: %w", err)
 	}
 	amountOut := output[0].(*big.Int)
 
@@ -95,7 +95,7 @@ func (sdk *SdkOptimism) GetPrice(stable constants.Stablecoin) (*big.Int, error) 
 
 	result, err := sdk.getPriceFromInput(input)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get price from input params: %w", err)
+		return nil, fmt.Errorf("failed to get price from input params: %w", err)
 	}
 
 	resultFloat := new(big.Float).SetInt(result)
@@ -137,18 +137,18 @@ func (sdk *SdkOptimism) GetSDaiPrice() (*big.Int, error) {
 	// Packing the input arguments
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
-		return nil, fmt.Errorf("Error loading client: %w", err)
+		return nil, fmt.Errorf("error loading client: %w", err)
 	}
 
 	oracleAddress := common.HexToAddress(constants.OptSDaiOracleAddress)
 	oracle, err := optimismContracts.NewDSRAuthOracleCaller(oracleAddress, client)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to load DSRAuthOracle contract: %w", err)
+		return nil, fmt.Errorf("failed to load DSRAuthOracle contract: %w", err)
 	}
 
 	result, err := oracle.GetPotData(nil)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to call GetPotData function: %w", err)
+		return nil, fmt.Errorf("failed to call GetPotData function: %w", err)
 	}
 
 	blockTimestamp := big.NewInt(time.Now().Unix())
@@ -214,7 +214,7 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 	}
 	resultOne, err := sdk.getPriceFromInput(input)
 	if err != nil {
-		return 0, 0, 0, fmt.Errorf("Failed to get price from input params: %w", err)
+		return 0, 0, 0, fmt.Errorf("failed to get price from input params: %w", err)
 	}
 
 	if resultOne.Cmp(big.NewInt(0)) == 0 {
@@ -237,7 +237,7 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 	input.AmountIn = amount
 	resultAmount, err := sdk.getPriceFromInput(input)
 	if err != nil {
-		return 0, 0, 0, fmt.Errorf("Failed to get price from input params: %w", err)
+		return 0, 0, 0, fmt.Errorf("failed to get price from input params: %w", err)
 	}
 
 	if amount.Cmp(big.NewInt(0)) == 0 || resultAmount.Cmp(big.NewInt(0)) == 0 {
@@ -267,22 +267,22 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 func (sdk *SdkOptimism) createSwapData(callTo common.Address, approveTo common.Address, sendingAssetId common.Address, receivingAssetId common.Address, fromAmount *big.Int, fromStableTosDai bool) ([]optimismContracts.LibSwapSwapData, error) {
 	poolABI, err := abi.JSON(strings.NewReader(optimismContracts.VelodromePoolMetaData.ABI))
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse ABI: %w", err)
+		return nil, fmt.Errorf("failed to parse ABI: %w", err)
 	}
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
-		return nil, fmt.Errorf("Error loading client: %w", err)
+		return nil, fmt.Errorf("error loading client: %w", err)
 	}
 
 	veloPool, err := optimismContracts.NewVelodromePool(callTo, client)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to create VelodromePool instance: %w", err)
+		return nil, fmt.Errorf("failed to create VelodromePool instance: %w", err)
 	}
 
 	slot0Data, err := veloPool.Slot0(nil)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get slot0 data: %w", err)
+		return nil, fmt.Errorf("failed to get slot0 data: %w", err)
 	}
 
 	sqrtPriceX96 := slot0Data.SqrtPriceX96
@@ -343,38 +343,31 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 
 	swapData, err := sdk.createSwapData(veloPoolAddress, veloPoolAddress, stableAddress, sDaiAddress, amount, true)
 	if err != nil {
-		return "", fmt.Errorf("Failed to create SwapData instance: %v", err)
+		return "", fmt.Errorf("failed to create SwapData instance: %v", err)
 	}
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
-		return "", fmt.Errorf("Failed to connect to the Optimism client: %v", err)
+		return "", fmt.Errorf("failed to connect to the Optimism client: %v", err)
 	}
 
 	stableContract, err := optimismContracts.NewFiatTokenV22Caller(stableAddress, client)
 	if err != nil {
-		return "", fmt.Errorf("Failed to load FiatTokenV22 contract: %w", err)
+		return "", fmt.Errorf("failed to load FiatTokenV22 contract: %w", err)
 	}
-
-	balanceUSDC, err := stableContract.BalanceOf(nil, fromAddress)
-	if err != nil {
-		return "", fmt.Errorf("Failed to get USDC user's balance: %v", err)
-	}
-	fmt.Println("USDC balance of user: ", balanceUSDC)
-	fmt.Println("USDC amount to swap:  ", amount)
 
 	result, err := stableContract.Allowance(nil, fromAddress, vaultAddress)
 	if err != nil {
-		return "", fmt.Errorf("Failed to call Allowance function: %w", err)
+		return "", fmt.Errorf("failed to call Allowance function: %w", err)
 	}
 
 	if amount.Cmp(result) > 0 {
-		return "", fmt.Errorf("Allowance is too low. First call approve function on USDC contract.")
+		return "", fmt.Errorf("allowance is too low. First call approve function on USDC contract")
 	}
 
 	novaVaultV2Abi, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultV2ABI))
 	if err != nil {
-		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
+		return "", fmt.Errorf("failed to parse contract ABI: %w", err)
 	}
 
 	referralUint16 := uint16(referral.Uint64())
@@ -385,12 +378,12 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 
 	tx, err := utils.CreateTransaction(fromAddress, vaultAddress, data, sdk.Config.RpcEndpoint)
 	if err != nil {
-		return "", fmt.Errorf("Failed to create 'deposit' transaction: %v", err)
+		return "", fmt.Errorf("failed to create 'deposit' transaction: %v", err)
 	}
 
 	txJSON, err := json.Marshal(tx)
 	if err != nil {
-		return "", fmt.Errorf("Failed to marshal transaction: %w", err)
+		return "", fmt.Errorf("failed to marshal transaction: %w", err)
 	}
 
 	return string(txJSON), nil
@@ -409,31 +402,31 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 
 	swapData, err := sdk.createSwapData(veloPoolAddress, veloPoolAddress, sDaiAddress, stableAddress, amount, false)
 	if err != nil {
-		return "", fmt.Errorf("Failed to create SwapData instance: %w", err)
+		return "", fmt.Errorf("failed to create SwapData instance: %w", err)
 	}
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
-		return "", fmt.Errorf("Failed to connect to the Optimism client: %v", err)
+		return "", fmt.Errorf("failed to connect to the Optimism client: %v", err)
 	}
 
 	sDaiContract, err := optimismContracts.NewSavingsDaiCaller(sDaiAddress, client)
 	if err != nil {
-		return "", fmt.Errorf("Failed to load SavingsDai contract: %w", err)
+		return "", fmt.Errorf("failed to load SavingsDai contract: %w", err)
 	}
 
 	result, err := sDaiContract.Allowance(nil, fromAddress, vaultAddress)
 	if err != nil {
-		return "", fmt.Errorf("Failed to call Allowance function: %w", err)
+		return "", fmt.Errorf("failed to call Allowance function: %w", err)
 	}
 	fmt.Println("Allowance result: ", result)
 
 	if amount.Cmp(result) > 0 {
-		return "", fmt.Errorf("Allowance is too low. First call approve function on sDai contract.")
+		return "", fmt.Errorf("allowance is too low. First call approve function on sDai contract")
 	}
 
 	novaVaultV2, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultV2MetaData.ABI))
 	if err != nil {
-		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
+		return "", fmt.Errorf("failed to parse contract ABI: %w", err)
 	}
 
 	referralUint16 := uint16(referral.Uint64())
@@ -444,12 +437,12 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 
 	tx, err := utils.CreateTransaction(fromAddress, vaultAddress, data, sdk.Config.RpcEndpoint)
 	if err != nil {
-		return "", fmt.Errorf("Failed to create 'withdraw' transaction: %v", err)
+		return "", fmt.Errorf("failed to create 'withdraw' transaction: %v", err)
 	}
 
 	txJSON, err := json.Marshal(tx)
 	if err != nil {
-		return "", fmt.Errorf("Failed to marshal transaction: %w", err)
+		return "", fmt.Errorf("failed to marshal transaction: %w", err)
 	}
 
 	return string(txJSON), nil

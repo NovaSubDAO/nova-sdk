@@ -25,7 +25,7 @@ func NewNovaSDK(rpcEndpoint string, chainId int64) (SdkInterface, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to instantiate SDK: %w", err)
+		return nil, fmt.Errorf("failed to instantiate SDK: %w", err)
 	}
 
 	return novaSdk, nil

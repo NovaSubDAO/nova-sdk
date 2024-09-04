@@ -43,7 +43,7 @@ var testCases = []testCase{
 		privateKeyHex: os.Getenv("TEST_PRIVATE_KEY"),
 	},
 	{
-		rpcEndpoint:   os.Getenv("OPT_RPC_ENDPOINT_ANVIL"),
+		rpcEndpoint:   os.Getenv("OPT_RPC_ENDPOINT"),
 		chainId:       10,
 		vaultAddress:  constants.ConfigDetails[10].VaultAddress,
 		stable:        constants.USDC,
@@ -61,7 +61,7 @@ func printUserBalance(from common.Address, client *ethclient.Client) {
 	fmt.Printf("Eth balance of %s: %f ETH\n", from.Hex(), ethBalance)
 }
 
-func increaseAllowance(from common.Address, spender common.Address, token common.Address, amount *big.Int, isDeposit bool, client *ethclient.Client, privateKey *ecdsa.PrivateKey, rpcEndpoint string, chainId int64) (*types.Transaction, error) {
+func increaseAllowance(from common.Address, spender common.Address, token common.Address, amount *big.Int, isDeposit bool, privateKey *ecdsa.PrivateKey, rpcEndpoint string, chainId int64) (*types.Transaction, error) {
 	var asset abi.ABI
 	var err error
 
@@ -176,7 +176,7 @@ func TestSdkCreateDepositTx(t *testing.T) {
 			fmt.Println()
 			fmt.Println("------------------------------ Increasing allowance... ------------------------------")
 			printUserBalance(tc.mockAddress, client)
-			_, err = increaseAllowance(tc.mockAddress, spender, stableAddress, mockAmount, true, client, privateKey, tc.rpcEndpoint, tc.chainId)
+			_, err = increaseAllowance(tc.mockAddress, spender, stableAddress, mockAmount, true, privateKey, tc.rpcEndpoint, tc.chainId)
 			if err != nil {
 				log.Fatalf("Failed to increase allowance: %v", err)
 			}

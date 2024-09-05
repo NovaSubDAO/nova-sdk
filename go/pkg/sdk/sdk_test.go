@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"math/big"
 	"os"
 	"strconv"
@@ -28,6 +29,7 @@ type testCase struct {
 	rpcEndpoint   string
 	chainId       int64
 	vaultAddress  string
+	vaultDecimals int64
 	stable        constants.Stablecoin
 	sDai          common.Address
 	mockAddress   common.Address
@@ -39,6 +41,7 @@ var testCases = []testCase{
 		rpcEndpoint:   os.Getenv("ETH_RPC_ENDPOINT"),
 		chainId:       1,
 		vaultAddress:  constants.ConfigDetails[1].VaultAddress,
+		vaultDecimals: constants.ConfigDetails[1].VaultDecimals,
 		stable:        constants.DAI,
 		sDai:          common.HexToAddress(constants.ConfigDetails[1].SDai),
 		mockAddress:   common.HexToAddress(os.Getenv("TEST_ADDRESS")),
@@ -48,6 +51,7 @@ var testCases = []testCase{
 		rpcEndpoint:   os.Getenv("OPT_RPC_ENDPOINT"),
 		chainId:       10,
 		vaultAddress:  constants.ConfigDetails[10].VaultAddress,
+		vaultDecimals: constants.ConfigDetails[10].VaultDecimals,
 		stable:        constants.USDC,
 		sDai:          common.HexToAddress(constants.ConfigDetails[10].SDai),
 		mockAddress:   common.HexToAddress(os.Getenv("TEST_ADDRESS")),
@@ -125,10 +129,13 @@ func TestSdkCreateDepositTx(t *testing.T) {
 			if err != nil {
 				log.Fatalf("Failed to get user's USDC balance: %v", err)
 			}
-			initialBalanceSDai, err := getAssetUserBalance(tc.mockAddress, stableAddress, client, tc.chainId, true)
+			fmt.Println("Initial usdc balance: ", initialBalanceUsdc)
+			initialBalanceSDai, err := getAssetUserBalance(tc.mockAddress, tc.sDai, client, tc.chainId, true)
 			if err != nil {
-				log.Fatalf("Failed to get user's USDC balance: %v", err)
+				log.Fatalf("Failed to get user's sDai balance: %v", err)
 			}
+
+			fmt.Println("Initial sDai balance: ", initialBalanceSDai)
 
 			fmt.Println()
 			fmt.Println("-------------------------- Creating deposit transaction... --------------------------")
@@ -159,21 +166,32 @@ func TestSdkCreateDepositTx(t *testing.T) {
 			fmt.Println("********************************** Deposit success **********************************")
 
 			newBalanceUsdc, _ := getAssetUserBalance(tc.mockAddress, stableAddress, client, tc.chainId, true)
+			expectedBalanceUsdc := new(big.Int).Sub(initialBalanceUsdc, mockAmount)
+
 			newBalanceSDai, err := getAssetUserBalance(tc.mockAddress, tc.sDai, client, tc.chainId, true)
 			if err != nil {
-				log.Fatalf("Failed to get user's USDC balance: %v", err)
+				log.Fatalf("Failed to get user's sDai balance: %v", err)
 			}
-
-			expectedBalanceUsdc := new(big.Int).Sub(initialBalanceUsdc, mockAmount)
-			expectedReceivedSDai, _ := getAmountOut(stableAddress, tc.sDai, mockAmount, client)
 			receivedSDai := new(big.Int).Sub(newBalanceSDai, initialBalanceSDai)
+			fmt.Println("received sDai: ", receivedSDai)
 
-			fmt.Println(expectedReceivedSDai)
-			fmt.Println(newBalanceSDai)
-			fmt.Println(initialBalanceSDai)
+			_, _, executedPrice, _ := novaSdk.GetSlippage(tc.stable, mockAmount)
+			mockAmountFloat := new(big.Float).SetInt(mockAmount)
+			executedPriceFloat := new(big.Float).SetFloat64(executedPrice)
+			reciprocalPrice := new(big.Float).Quo(big.NewFloat(1), executedPriceFloat)
+			expectedReceivedSDaiFloat := new(big.Float).Mul(mockAmountFloat, reciprocalPrice)
+
+			scaleFactor := new(big.Float).SetFloat64(math.Pow(10, 12))
+			scaledExpectedReceivedSDai := new(big.Float).Mul(expectedReceivedSDaiFloat, scaleFactor)
+
+			roundedExpectedReceivedSDai := new(big.Int)
+			scaledExpectedReceivedSDai.Int(roundedExpectedReceivedSDai)
+
+			expectedReceivedSDai6Decimals := scaleTo6decimals(roundedExpectedReceivedSDai, scaleFactor)
+			receivedSDai6decimals := scaleTo6decimals(receivedSDai, scaleFactor)
 
 			assert.Equal(t, expectedBalanceUsdc, newBalanceUsdc, "USDC balance should be equal to the initial balance minus the mock amount")
-			assert.Equal(t, expectedReceivedSDai, receivedSDai, "Wrong sDai amount received")
+			assert.Equal(t, expectedReceivedSDai6Decimals, receivedSDai6decimals, "Wrong sDai amount received")
 		})
 	}
 }
@@ -476,28 +494,15 @@ func increaseAllowance(from common.Address, spender common.Address, token common
 	return signedTx, nil
 }
 
-func getAmountOut(tokenIn common.Address, tokenOut common.Address, amountIn *big.Int, client *ethclient.Client) (*big.Int, error) {
-	input := optimismContracts.IQuoterV2QuoteExactInputSingleParams{
-		TokenIn:           tokenIn,
-		TokenOut:          tokenOut,
-		AmountIn:          amountIn,
-		TickSpacing:       big.NewInt(1),
-		SqrtPriceLimitX96: big.NewInt(0),
-	}
+func scaleTo6decimals(roundedExpectedReceivedSDai *big.Int, scaleFactor *big.Float) *big.Int {
+	finalExpectedReceivedSDai := new(big.Float).SetInt(roundedExpectedReceivedSDai)
+	finalExpectedReceivedSDai.Quo(finalExpectedReceivedSDai, scaleFactor)
+	fmt.Println("finalExpectedReceivedSDai:", finalExpectedReceivedSDai.String())
 
-	quoterAddress := common.HexToAddress(constants.OptQuoterV2Address)
-	quoter, err := optimismContracts.NewQuoterV2(quoterAddress, client)
-	if err != nil {
-		return nil, fmt.Errorf("failed to load QuoterV2 contract: %w", err)
-	}
+	// Convert the final result to *big.Int
+	expectedReceivedSDaiInt := new(big.Int)
+	finalExpectedReceivedSDai.Int(expectedReceivedSDaiInt)
+	fmt.Println("expectedReceivedSDaiInt:", expectedReceivedSDaiInt.String())
 
-	var output []interface{}
-	rawCaller := &optimismContracts.QuoterV2Raw{Contract: quoter}
-	err = rawCaller.Call(nil, &output, "quoteExactInputSingle", input)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call quoteExactInputSingle function: %w", err)
-	}
-	amountOut := output[0].(*big.Int)
-
-	return amountOut, nil
+	return expectedReceivedSDaiInt
 }

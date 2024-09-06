@@ -18,6 +18,4 @@ clean:
 	rm -f pkg/sdk/optimism/abis/*.go
 	rm -f pkg/sdk/ethereum/abis/*.go
 
-test: run_tests.sh
-	@chmod +x run_tests.sh
-	@./run_tests.sh
+test: ./run_tests.sh

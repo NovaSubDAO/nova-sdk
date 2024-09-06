@@ -339,9 +339,9 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
 	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
 	sDaiAddress := common.HexToAddress(sdk.Config.SDai)
-	veloPoolAddress := common.HexToAddress(sdk.Config.LiquidityPool)
+	liquidityPoolAddress := common.HexToAddress(sdk.Config.LiquidityPool)
 
-	swapData, err := sdk.createSwapData(veloPoolAddress, veloPoolAddress, stableAddress, sDaiAddress, amount, true)
+	swapData, err := sdk.createSwapData(liquidityPoolAddress, liquidityPoolAddress, stableAddress, sDaiAddress, amount, true)
 	if err != nil {
 		return "", fmt.Errorf("failed to create SwapData instance: %v", err)
 	}
@@ -398,9 +398,9 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
 	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
 	sDaiAddress := common.HexToAddress(sdk.Config.SDai)
-	veloPoolAddress := common.HexToAddress(sdk.Config.LiquidityPool)
+	liquidityPoolAddress := common.HexToAddress(sdk.Config.LiquidityPool)
 
-	swapData, err := sdk.createSwapData(veloPoolAddress, veloPoolAddress, sDaiAddress, stableAddress, amount, false)
+	swapData, err := sdk.createSwapData(liquidityPoolAddress, liquidityPoolAddress, sDaiAddress, stableAddress, amount, false)
 	if err != nil {
 		return "", fmt.Errorf("failed to create SwapData instance: %w", err)
 	}

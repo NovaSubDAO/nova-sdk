@@ -28,11 +28,13 @@ import (
 type testCase struct {
 	rpcEndpoint   string
 	chainId       int64
-	vaultAddress  string
+	vault         string
+	vaultAddress  common.Address
 	vaultDecimals int64
 	stable        constants.Stablecoin
+	stableAddress common.Address
 	sDai          common.Address
-	mockAddress   common.Address
+	testAddress   common.Address
 	privateKeyHex string
 }
 
@@ -40,21 +42,25 @@ var testCases = []testCase{
 	{
 		rpcEndpoint:   os.Getenv("ETH_RPC_ENDPOINT"),
 		chainId:       1,
-		vaultAddress:  constants.ConfigDetails[1].VaultAddress,
+		vault:         constants.ConfigDetails[1].VaultAddress,
+		vaultAddress:  common.HexToAddress(constants.ConfigDetails[1].VaultAddress),
 		vaultDecimals: constants.ConfigDetails[1].VaultDecimals,
 		stable:        constants.DAI,
+		stableAddress: common.HexToAddress(constants.StablecoinDetails[1][constants.DAI].Address),
 		sDai:          common.HexToAddress(constants.ConfigDetails[1].SDai),
-		mockAddress:   common.HexToAddress(os.Getenv("TEST_ADDRESS")),
+		testAddress:   common.HexToAddress(os.Getenv("TEST_ADDRESS")),
 		privateKeyHex: os.Getenv("TEST_PRIVATE_KEY"),
 	},
 	{
 		rpcEndpoint:   os.Getenv("OPT_RPC_ENDPOINT"),
 		chainId:       10,
-		vaultAddress:  constants.ConfigDetails[10].VaultAddress,
+		vault:         constants.ConfigDetails[10].VaultAddress,
+		vaultAddress:  common.HexToAddress(constants.ConfigDetails[10].VaultAddress),
 		vaultDecimals: constants.ConfigDetails[10].VaultDecimals,
 		stable:        constants.USDC,
+		stableAddress: common.HexToAddress(constants.StablecoinDetails[10][constants.USDC].Address),
 		sDai:          common.HexToAddress(constants.ConfigDetails[10].SDai),
-		mockAddress:   common.HexToAddress(os.Getenv("TEST_ADDRESS")),
+		testAddress:   common.HexToAddress(os.Getenv("TEST_ADDRESS")),
 		privateKeyHex: os.Getenv("TEST_PRIVATE_KEY"),
 	},
 }
@@ -79,8 +85,8 @@ func TestSdkConfigDetails(t *testing.T) {
 
 			cfg := novaSdk.GetConfig()
 
-			vaultAddress := constants.ConfigDetails[tc.chainId].VaultAddress
-			assert.Equal(t, vaultAddress, cfg.VaultAddress)
+			vault := constants.ConfigDetails[tc.chainId].VaultAddress
+			assert.Equal(t, vault, cfg.VaultAddress)
 
 			sDai := constants.ConfigDetails[tc.chainId].SDai
 			assert.Equal(t, sDai, cfg.SDai)
@@ -103,7 +109,7 @@ func TestSdkCreateDepositTx(t *testing.T) {
 
 			client, err := ethclient.Dial(tc.rpcEndpoint)
 			if err != nil {
-				log.Fatalf("Failed to connect to the Optimism client: %v", err)
+				log.Fatalf("Failed to connect to the client: %v", err)
 			}
 			privateKey, err := crypto.HexToECDSA(tc.privateKeyHex)
 			if err != nil {
@@ -112,25 +118,22 @@ func TestSdkCreateDepositTx(t *testing.T) {
 
 			mockAmount := big.NewInt(1e6)
 			mockReferral := big.NewInt(123)
-			spender := common.HexToAddress(tc.vaultAddress)
-
-			stableAddress := common.HexToAddress(constants.StablecoinDetails[tc.chainId][tc.stable].Address)
 
 			fmt.Println()
 			fmt.Println("------------------------------ Increasing allowance... ------------------------------")
-			printUserBalance(tc.mockAddress, client)
-			_, err = increaseAllowance(tc.mockAddress, spender, stableAddress, mockAmount, true, privateKey, tc.rpcEndpoint, tc.chainId)
+			printUserEthBalance(tc.testAddress, client)
+			_, err = increaseAllowance(tc.testAddress, tc.vaultAddress, tc.stableAddress, mockAmount, privateKey, tc.rpcEndpoint, tc.chainId)
 			if err != nil {
-				log.Fatalf("Failed to increase allowance: %v", err)
+				log.Fatalf("TestSdkCreateDepositTx: increaseAllowance: %v", err)
 			}
 			fmt.Println("******************************** Allowance increased ********************************")
 
-			initialBalanceUsdc, err := getAssetUserBalance(tc.mockAddress, stableAddress, client, tc.chainId, true)
+			initialBalanceStable, err := getAssetUserBalance(tc.testAddress, tc.stableAddress, client, tc.chainId)
 			if err != nil {
-				log.Fatalf("Failed to get user's USDC balance: %v", err)
+				log.Fatalf("Failed to get user's stable balance: %v", err)
 			}
-			fmt.Println("Initial usdc balance: ", initialBalanceUsdc)
-			initialBalanceSDai, err := getAssetUserBalance(tc.mockAddress, tc.sDai, client, tc.chainId, true)
+			fmt.Println("Initial stable balance: ", initialBalanceStable)
+			initialBalanceSDai, err := getAssetUserBalance(tc.testAddress, tc.sDai, client, tc.chainId)
 			if err != nil {
 				log.Fatalf("Failed to get user's sDai balance: %v", err)
 			}
@@ -139,8 +142,8 @@ func TestSdkCreateDepositTx(t *testing.T) {
 
 			fmt.Println()
 			fmt.Println("-------------------------- Creating deposit transaction... --------------------------")
-			printUserBalance(tc.mockAddress, client)
-			txJSON, err := novaSdk.CreateDepositTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
+			printUserEthBalance(tc.testAddress, client)
+			txJSON, err := novaSdk.CreateDepositTransaction(tc.stable, tc.testAddress, mockAmount, mockReferral)
 			if err != nil {
 				log.Fatalf("Failed to call 'CreateDepositTransaction' function: %s", err)
 			}
@@ -154,21 +157,21 @@ func TestSdkCreateDepositTx(t *testing.T) {
 
 			signedTx, err := utils.SignTransaction(&tx, big.NewInt(tc.chainId), privateKey)
 			if err != nil {
-				log.Fatalf("TestSdkCreateDepositTx: %v", err)
+				log.Fatalf("TestSdkCreateDepositTx: failed to sign transaction:%v", err)
 			}
 			fmt.Println("-- Transaction signed")
 
 			err = utils.SendTransaction(signedTx, tc.rpcEndpoint)
 			if err != nil {
-				log.Fatalf("TestSdkCreateDepositTx: %v", err)
+				log.Fatalf("TestSdkCreateDepositTx: Failed to send transaction: %v", err)
 			}
 			fmt.Println("---- Transaction sent")
 			fmt.Println("********************************** Deposit success **********************************")
 
-			newBalanceUsdc, _ := getAssetUserBalance(tc.mockAddress, stableAddress, client, tc.chainId, true)
-			expectedBalanceUsdc := new(big.Int).Sub(initialBalanceUsdc, mockAmount)
+			newBalanceStable, _ := getAssetUserBalance(tc.testAddress, tc.stableAddress, client, tc.chainId)
+			expectedBalanceStable := new(big.Int).Sub(initialBalanceStable, mockAmount)
 
-			newBalanceSDai, err := getAssetUserBalance(tc.mockAddress, tc.sDai, client, tc.chainId, true)
+			newBalanceSDai, err := getAssetUserBalance(tc.testAddress, tc.sDai, client, tc.chainId)
 			if err != nil {
 				log.Fatalf("Failed to get user's sDai balance: %v", err)
 			}
@@ -181,16 +184,19 @@ func TestSdkCreateDepositTx(t *testing.T) {
 			reciprocalPrice := new(big.Float).Quo(big.NewFloat(1), executedPriceFloat)
 			expectedReceivedSDaiFloat := new(big.Float).Mul(mockAmountFloat, reciprocalPrice)
 
-			scaleFactor := new(big.Float).SetFloat64(math.Pow(10, 12))
+			sDaiDecimals := tc.vaultDecimals
+			stableDecimals := constants.StablecoinDetails[tc.chainId][tc.stable].Decimals
+			decimalsDifference := sDaiDecimals - int64(stableDecimals)
+			scaleFactor := new(big.Float).SetFloat64(math.Pow(10, float64(decimalsDifference)))
 			scaledExpectedReceivedSDai := new(big.Float).Mul(expectedReceivedSDaiFloat, scaleFactor)
 
 			roundedExpectedReceivedSDai := new(big.Int)
 			scaledExpectedReceivedSDai.Int(roundedExpectedReceivedSDai)
 
-			expectedReceivedSDai6Decimals := scaleTo6decimals(roundedExpectedReceivedSDai, scaleFactor)
-			receivedSDai6decimals := scaleTo6decimals(receivedSDai, scaleFactor)
+			expectedReceivedSDai6Decimals := scaleByFactor(roundedExpectedReceivedSDai, scaleFactor)
+			receivedSDai6decimals := scaleByFactor(receivedSDai, scaleFactor)
 
-			assert.Equal(t, expectedBalanceUsdc, newBalanceUsdc, "USDC balance should be equal to the initial balance minus the mock amount")
+			assert.Equal(t, expectedBalanceStable, newBalanceStable, "Stable balance should be equal to the initial balance minus the mock amount")
 			assert.Equal(t, expectedReceivedSDai6Decimals, receivedSDai6decimals, "Wrong sDai received amount")
 		})
 	}
@@ -208,7 +214,7 @@ func TestSdkCreateWithdrawTx(t *testing.T) {
 
 			client, err := ethclient.Dial(tc.rpcEndpoint)
 			if err != nil {
-				log.Fatalf("Failed to connect to the Optimism client: %v", err)
+				log.Fatalf("Failed to connect to the client: %v", err)
 			}
 			privateKey, err := crypto.HexToECDSA(tc.privateKeyHex)
 			if err != nil {
@@ -217,25 +223,22 @@ func TestSdkCreateWithdrawTx(t *testing.T) {
 
 			mockAmount := big.NewInt(6e17)
 			mockReferral := big.NewInt(123)
-			spender := common.HexToAddress(tc.vaultAddress)
 
-			stableAddress := common.HexToAddress(constants.StablecoinDetails[tc.chainId][tc.stable].Address)
-
-			initialBalanceSDai, err := getAssetUserBalance(tc.mockAddress, tc.sDai, client, tc.chainId, true)
+			initialBalanceSDai, err := getAssetUserBalance(tc.testAddress, tc.sDai, client, tc.chainId)
 			if err != nil {
 				log.Fatalf("Failed to get user's sDai balance: %v", err)
 			}
 			fmt.Println("Initial balance sDai: ", initialBalanceSDai)
-			initialBalanceUsdc, err := getAssetUserBalance(tc.mockAddress, stableAddress, client, tc.chainId, true)
+			initialBalanceStable, err := getAssetUserBalance(tc.testAddress, tc.stableAddress, client, tc.chainId)
 			if err != nil {
 				log.Fatalf("Failed to get user's sDai balance: %v", err)
 			}
-			fmt.Println("Initial balance Usdc: ", initialBalanceUsdc)
+			fmt.Println("Initial balance stable: ", initialBalanceStable)
 
 			fmt.Println()
 			fmt.Println("------------------------------ Increasing allowance... ------------------------------")
-			printUserBalance(tc.mockAddress, client)
-			_, err = increaseAllowance(tc.mockAddress, spender, tc.sDai, mockAmount, true, privateKey, tc.rpcEndpoint, tc.chainId)
+			printUserEthBalance(tc.testAddress, client)
+			_, err = increaseAllowance(tc.testAddress, tc.vaultAddress, tc.sDai, mockAmount, privateKey, tc.rpcEndpoint, tc.chainId)
 			if err != nil {
 				log.Fatalf("Failed to increase allowance: %v", err)
 			}
@@ -243,8 +246,8 @@ func TestSdkCreateWithdrawTx(t *testing.T) {
 
 			fmt.Println()
 			fmt.Println("------------------------- Creating withdraw transaction... --------------------------")
-			printUserBalance(tc.mockAddress, client)
-			txJSON, err := novaSdk.CreateWithdrawTransaction(tc.stable, tc.mockAddress, mockAmount, mockReferral)
+			printUserEthBalance(tc.testAddress, client)
+			txJSON, err := novaSdk.CreateWithdrawTransaction(tc.stable, tc.testAddress, mockAmount, mockReferral)
 			if err != nil {
 				log.Fatalf("Failed to call 'CreateWithdrawTransaction' function: %s", err)
 			}
@@ -258,51 +261,59 @@ func TestSdkCreateWithdrawTx(t *testing.T) {
 
 			signedTx, err := utils.SignTransaction(&tx, big.NewInt(tc.chainId), privateKey)
 			if err != nil {
-				log.Fatalf("TestSdkCreateWithdrawTx: %v", err)
+				log.Fatalf("TestSdkCreateWithdrawTx: failed to sign transaction: %v", err)
 			}
 			fmt.Println("-- Transaction signed")
 
 			err = utils.SendTransaction(signedTx, tc.rpcEndpoint)
 			if err != nil {
-				log.Fatalf("TestSdkCreateWithdrawTx: %v", err)
+				log.Fatalf("TestSdkCreateWithdrawTx: failed to send transaction: %v", err)
 			}
 			fmt.Println("---- Transaction sent")
 			fmt.Println("********************************** Withdraw success **********************************")
 
-			newBalanceSDai, err := getAssetUserBalance(tc.mockAddress, tc.sDai, client, tc.chainId, true)
+			newBalanceSDai, err := getAssetUserBalance(tc.testAddress, tc.sDai, client, tc.chainId)
 			if err != nil {
 				log.Fatalf("Failed to get user's sDai balance: %v", err)
 			}
 			fmt.Println("New balance sDai: ", newBalanceSDai)
-			newBalanceUsdc, err := getAssetUserBalance(tc.mockAddress, stableAddress, client, tc.chainId, true)
+			newBalanceStable, err := getAssetUserBalance(tc.testAddress, tc.stableAddress, client, tc.chainId)
 			if err != nil {
 				log.Fatalf("Failed to get user's sDai balance: %v", err)
 			}
-			fmt.Println("New balance Usdc: ", newBalanceUsdc)
+			fmt.Println("New balance stable: ", newBalanceStable)
 
 			expectedBalanceSDai := new(big.Int).Sub(initialBalanceSDai, mockAmount)
-			receivedUsdc := new(big.Int).Sub(newBalanceUsdc, initialBalanceUsdc)
+			receivedStable := new(big.Int).Sub(newBalanceStable, initialBalanceStable)
 
 			price, _ := novaSdk.GetPrice(tc.stable)
-			multiplier := new(big.Int).Exp(big.NewInt(10), big.NewInt(12), nil)
-			priceInDecimals := new(big.Int).Mul(price, multiplier)
 
-			priceProductAmount := new(big.Int).Mul(priceInDecimals, mockAmount)
+			sDaiDecimals := tc.vaultDecimals
+			stableDecimals := constants.StablecoinDetails[tc.chainId][tc.stable].Decimals
 
-			divisor := new(big.Int).Exp(big.NewInt(10), big.NewInt(30), nil)
-			expectedReceivedUsdc := new(big.Int).Div(priceProductAmount, divisor)
+			decimalsDifference := sDaiDecimals - int64(stableDecimals)
+			decimalMultiplier := new(big.Int).Exp(big.NewInt(10), big.NewInt(decimalsDifference), nil)
 
-			receivedUsdcFloat := new(big.Float).SetInt(receivedUsdc)
-			expectedReceivedUsdcFloat := new(big.Float).SetInt(expectedReceivedUsdc)
+			priceAdjustedToDecimals := new(big.Int).Mul(price, decimalMultiplier)
 
-			UsdcDecimals := big.NewFloat(1e6)
-			receivedUsdcInDecimals := new(big.Float).Quo(receivedUsdcFloat, UsdcDecimals)
-			expectedReceivedUsdcInDecimals := new(big.Float).Quo(expectedReceivedUsdcFloat, UsdcDecimals)
+			priceTimesMockAmount := new(big.Int).Mul(priceAdjustedToDecimals, mockAmount)
+
+			fixedDecimalDivisor := new(big.Int).Exp(big.NewInt(10), big.NewInt(30), nil)
+			expectedReceivedStable := new(big.Int).Div(priceTimesMockAmount, fixedDecimalDivisor)
+
+			receivedStableFloat := new(big.Float).SetInt(receivedStable)
+			expectedReceivedStableFloat := new(big.Float).SetInt(expectedReceivedStable)
+
+			stableDecimalsInt := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(stableDecimals)), nil)
+			stableDecimalsFloat := new(big.Float).SetInt(stableDecimalsInt)
+			receivedStableInCorrectDecimals := new(big.Float).Quo(receivedStableFloat, stableDecimalsFloat)
+			expectedReceivedStableInCorrectDecimals := new(big.Float).Quo(expectedReceivedStableFloat, stableDecimalsFloat)
 
 			tolerance := 1e-3
-			receivedUsdcFloat64, _ := receivedUsdcInDecimals.Float64()
-			expectedUsdcFloat64, _ := expectedReceivedUsdcInDecimals.Float64()
-			assert.InDelta(t, expectedUsdcFloat64, receivedUsdcFloat64, tolerance, "Wrong Usdc received amount")
+			receivedStableFloat64, _ := receivedStableInCorrectDecimals.Float64()
+			expectedStableFloat64, _ := expectedReceivedStableInCorrectDecimals.Float64()
+
+			assert.InDelta(t, expectedStableFloat64, receivedStableFloat64, tolerance, "Wrong stable received amount")
 			assert.Equal(t, newBalanceSDai, expectedBalanceSDai, "sDai balance should be equal to the initial balance minus the mock amount")
 		})
 	}
@@ -364,7 +375,7 @@ func TestSdkGetPosition(t *testing.T) {
 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
 			assert.NoError(t, err)
 
-			position, err := novaSdk.GetPosition(tc.stable, tc.mockAddress)
+			position, err := novaSdk.GetPosition(tc.stable, tc.testAddress)
 			assert.NoError(t, err)
 
 			lowerBound := big.NewInt(0)
@@ -405,7 +416,7 @@ func TestSdkGetSupportedStablecoins(t *testing.T) {
 	}
 }
 
-func printUserBalance(from common.Address, client *ethclient.Client) {
+func printUserEthBalance(from common.Address, client *ethclient.Client) {
 	balance, err := client.BalanceAt(context.Background(), from, nil)
 	if err != nil {
 		log.Fatalf("Failed to get the balance: %v", err)
@@ -414,11 +425,11 @@ func printUserBalance(from common.Address, client *ethclient.Client) {
 	fmt.Printf("Eth balance of %s: %f ETH\n", from.Hex(), ethBalance)
 }
 
-func getAssetUserBalance(from common.Address, asset common.Address, client *ethclient.Client, chainId int64, isDeposit bool) (*big.Int, error) {
+func getAssetUserBalance(from common.Address, asset common.Address, client *ethclient.Client, chainId int64) (*big.Int, error) {
 	var balanceAsset *big.Int
 
 	if chainId == 1 {
-		if isDeposit {
+		if asset == common.HexToAddress(constants.StablecoinDetails[chainId][constants.DAI].Address) {
 			assetContract, err := ethereumContracts.NewDaiCaller(asset, client)
 			if err != nil {
 				return nil, fmt.Errorf("failed to load Dai contract: %w", err)
@@ -427,8 +438,8 @@ func getAssetUserBalance(from common.Address, asset common.Address, client *ethc
 			if err != nil {
 				return nil, fmt.Errorf("failed to get Dai user's balance: %v", err)
 			}
-		} else {
-			assetContract, err := optimismContracts.NewSavingsDaiCaller(asset, client)
+		} else if asset == common.HexToAddress(constants.ConfigDetails[chainId].SDai) {
+			assetContract, err := ethereumContracts.NewSavingsDaiCaller(asset, client)
 			if err != nil {
 				return nil, fmt.Errorf("failed to load SavingsDai contract: %w", err)
 			}
@@ -436,19 +447,21 @@ func getAssetUserBalance(from common.Address, asset common.Address, client *ethc
 			if err != nil {
 				return nil, fmt.Errorf("failed to get sDai user's balance: %v", err)
 			}
+		} else {
+			return nil, fmt.Errorf("asset address not compatible")
 		}
 	} else if chainId == 10 {
-		if isDeposit {
+		if asset == common.HexToAddress(constants.StablecoinDetails[chainId][constants.USDC].Address) {
 			assetContract, err := optimismContracts.NewFiatTokenV22Caller(asset, client)
 			if err != nil {
 				return nil, fmt.Errorf("failed to load FiatTokenV22 contract: %w", err)
 			}
 			balanceAsset, err = assetContract.BalanceOf(nil, from)
 			if err != nil {
-				return nil, fmt.Errorf("failed to get USDC user's balance: %v", err)
+				return nil, fmt.Errorf("failed to get stable user's balance: %v", err)
 			}
 
-		} else {
+		} else if asset == common.HexToAddress(constants.ConfigDetails[chainId].SDai) {
 			assetContract, err := optimismContracts.NewSavingsDaiCaller(asset, client)
 			if err != nil {
 				return nil, fmt.Errorf("failed to load SavingsDai contract: %w", err)
@@ -457,38 +470,44 @@ func getAssetUserBalance(from common.Address, asset common.Address, client *ethc
 			if err != nil {
 				return nil, fmt.Errorf("failed to get sDai user's balance: %v", err)
 			}
+		} else {
+			return nil, fmt.Errorf("asset address not compatible")
 		}
 	}
 	return balanceAsset, nil
 }
 
-func increaseAllowance(from common.Address, spender common.Address, token common.Address, amount *big.Int, isDeposit bool, privateKey *ecdsa.PrivateKey, rpcEndpoint string, chainId int64) (*types.Transaction, error) {
+func increaseAllowance(from common.Address, spender common.Address, token common.Address, amount *big.Int, privateKey *ecdsa.PrivateKey, rpcEndpoint string, chainId int64) (*types.Transaction, error) {
 	var asset abi.ABI
 	var err error
 
 	if chainId == 1 {
-		if isDeposit {
+		if token == common.HexToAddress(constants.StablecoinDetails[chainId][constants.DAI].Address) {
 			asset, err = abi.JSON(strings.NewReader(ethereumContracts.DaiABI))
 			if err != nil {
 				log.Fatalf("Failed to parse Dai ABI: %v", err)
 			}
-		} else {
+		} else if token == common.HexToAddress(constants.ConfigDetails[chainId].SDai) {
 			asset, err = abi.JSON(strings.NewReader(ethereumContracts.SavingsDaiABI))
 			if err != nil {
 				log.Fatalf("Failed to parse sDai ABI: %v", err)
 			}
+		} else {
+			return nil, fmt.Errorf("asset address not compatible")
 		}
 	} else if chainId == 10 {
-		if isDeposit {
+		if token == common.HexToAddress(constants.StablecoinDetails[chainId][constants.USDC].Address) {
 			asset, err = abi.JSON(strings.NewReader(optimismContracts.FiatTokenV22ABI))
 			if err != nil {
 				log.Fatalf("Failed to parse FiatTokenV22 ABI: %v", err)
 			}
-		} else {
+		} else if token == common.HexToAddress(constants.ConfigDetails[chainId].SDai) {
 			asset, err = abi.JSON(strings.NewReader(optimismContracts.SavingsDaiABI))
 			if err != nil {
 				log.Fatalf("Failed to parse sDai ABI: %v", err)
 			}
+		} else {
+			return nil, fmt.Errorf("asset address not compatible")
 		}
 	}
 
@@ -499,31 +518,31 @@ func increaseAllowance(from common.Address, spender common.Address, token common
 
 	tx, err := utils.CreateTransaction(from, token, data, rpcEndpoint)
 	if err != nil {
-		log.Fatalf("Increase allowance failed: %v", err)
+		log.Fatalf("Increase allowance failed: failed to create transaction: %v", err)
 	}
 	fmt.Println("- Transaction created")
 
 	signedTx, err := utils.SignTransaction(tx, big.NewInt(chainId), privateKey)
 	if err != nil {
-		log.Fatalf("Increase allowance failed: %v", err)
+		log.Fatalf("Increase allowance failed: failed to sign transaction: %v", err)
 	}
 	fmt.Println("-- Transaction signed")
 
 	err = utils.SendTransaction(signedTx, rpcEndpoint)
 	if err != nil {
-		log.Fatalf("Increase allowance failed: %v", err)
+		log.Fatalf("Increase allowance failed: failed to send transaction: %v", err)
 	}
 	fmt.Println("---- Transaction sent")
 
 	return signedTx, nil
 }
 
-func scaleTo6decimals(roundedExpectedReceivedSDai *big.Int, scaleFactor *big.Float) *big.Int {
-	finalExpectedReceivedSDai := new(big.Float).SetInt(roundedExpectedReceivedSDai)
-	finalExpectedReceivedSDai.Quo(finalExpectedReceivedSDai, scaleFactor)
+func scaleByFactor(amount *big.Int, scaleFactor *big.Float) *big.Int {
+	scaledAmount := new(big.Float).SetInt(amount)
+	scaledAmount.Quo(scaledAmount, scaleFactor)
 
-	expectedReceivedSDaiInt := new(big.Int)
-	finalExpectedReceivedSDai.Int(expectedReceivedSDaiInt)
+	result := new(big.Int)
+	scaledAmount.Int(result)
 
-	return expectedReceivedSDaiInt
+	return result
 }

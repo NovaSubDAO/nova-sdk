@@ -43,7 +43,7 @@ var ConfigDetails = map[int64]ConfigData{
 		VaultDecimals: 18,
 	},
 	10: {
-		VaultAddress:  "0x04b12a2590BD808F7aC01f066aae0e2f48A3991C",
+		VaultAddress:  "0x04b12a2590BD808F7aC01f066aae0e2f48A3991C", // NovaVaultV2
 		SDai:          "0x2218a117083f5B482B0bB821d27056Ba9c04b1D3",
 		LiquidityPool: "0x131525f3FA23d65DC2B1EB8B6483a28c43B06916",
 		VaultDecimals: 18,

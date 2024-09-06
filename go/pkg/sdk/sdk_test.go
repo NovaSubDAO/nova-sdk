@@ -173,7 +173,7 @@ func TestSdkCreateDepositTx(t *testing.T) {
 				log.Fatalf("Failed to get user's sDai balance: %v", err)
 			}
 			receivedSDai := new(big.Int).Sub(newBalanceSDai, initialBalanceSDai)
-			fmt.Println("received sDai: ", receivedSDai)
+			fmt.Println("Received sDai: ", receivedSDai)
 
 			_, _, executedPrice, _ := novaSdk.GetSlippage(tc.stable, mockAmount)
 			mockAmountFloat := new(big.Float).SetInt(mockAmount)
@@ -191,7 +191,7 @@ func TestSdkCreateDepositTx(t *testing.T) {
 			receivedSDai6decimals := scaleTo6decimals(receivedSDai, scaleFactor)
 
 			assert.Equal(t, expectedBalanceUsdc, newBalanceUsdc, "USDC balance should be equal to the initial balance minus the mock amount")
-			assert.Equal(t, expectedReceivedSDai6Decimals, receivedSDai6decimals, "Wrong sDai amount received")
+			assert.Equal(t, expectedReceivedSDai6Decimals, receivedSDai6decimals, "Wrong sDai received amount")
 		})
 	}
 }
@@ -215,7 +215,7 @@ func TestSdkCreateWithdrawTx(t *testing.T) {
 				log.Fatalf("Failed to parse private key: %v", err)
 			}
 
-			mockAmount := big.NewInt(1e16)
+			mockAmount := big.NewInt(6e17)
 			mockReferral := big.NewInt(123)
 			spender := common.HexToAddress(tc.vaultAddress)
 
@@ -225,12 +225,12 @@ func TestSdkCreateWithdrawTx(t *testing.T) {
 			if err != nil {
 				log.Fatalf("Failed to get user's sDai balance: %v", err)
 			}
-			fmt.Println("initial balance sDai: ", initialBalanceSDai)
+			fmt.Println("Initial balance sDai: ", initialBalanceSDai)
 			initialBalanceUsdc, err := getAssetUserBalance(tc.mockAddress, stableAddress, client, tc.chainId, true)
 			if err != nil {
 				log.Fatalf("Failed to get user's sDai balance: %v", err)
 			}
-			fmt.Println("initial balance Usdc: ", initialBalanceUsdc)
+			fmt.Println("Initial balance Usdc: ", initialBalanceUsdc)
 
 			fmt.Println()
 			fmt.Println("------------------------------ Increasing allowance... ------------------------------")
@@ -281,6 +281,27 @@ func TestSdkCreateWithdrawTx(t *testing.T) {
 			fmt.Println("New balance Usdc: ", newBalanceUsdc)
 
 			expectedBalanceSDai := new(big.Int).Sub(initialBalanceSDai, mockAmount)
+			receivedUsdc := new(big.Int).Sub(newBalanceUsdc, initialBalanceUsdc)
+
+			price, _ := novaSdk.GetPrice(tc.stable)
+			multiplier := new(big.Int).Exp(big.NewInt(10), big.NewInt(12), nil)
+			priceInDecimals := new(big.Int).Mul(price, multiplier)
+
+			priceProductAmount := new(big.Int).Mul(priceInDecimals, mockAmount)
+
+			divisor := new(big.Int).Exp(big.NewInt(10), big.NewInt(30), nil)
+			expectedReceivedUsdc := new(big.Int).Div(priceProductAmount, divisor)
+
+			receivedUsdcFloat := new(big.Float).SetInt(receivedUsdc)
+			expectedReceivedUsdcFloat := new(big.Float).SetInt(expectedReceivedUsdc)
+
+			UsdcDecimals := big.NewFloat(1e6)
+			receivedUsdcInDecimals := new(big.Float).Quo(receivedUsdcFloat, UsdcDecimals)
+			expectedReceivedUsdcInDecimals := new(big.Float).Quo(expectedReceivedUsdcFloat, UsdcDecimals)
+
+			fmt.Println(receivedUsdcInDecimals, expectedReceivedUsdcInDecimals)
+
+			assert.Equal(t, expectedReceivedUsdcInDecimals, 1, "Wrong Usdc received amount")
 			assert.Equal(t, newBalanceSDai, expectedBalanceSDai, "sDai balance should be equal to the initial balance minus the mock amount")
 		})
 	}

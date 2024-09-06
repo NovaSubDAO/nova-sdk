@@ -299,9 +299,10 @@ func TestSdkCreateWithdrawTx(t *testing.T) {
 			receivedUsdcInDecimals := new(big.Float).Quo(receivedUsdcFloat, UsdcDecimals)
 			expectedReceivedUsdcInDecimals := new(big.Float).Quo(expectedReceivedUsdcFloat, UsdcDecimals)
 
-			fmt.Println(receivedUsdcInDecimals, expectedReceivedUsdcInDecimals)
-
-			assert.Equal(t, expectedReceivedUsdcInDecimals, 1, "Wrong Usdc received amount")
+			tolerance := 1e-3
+			receivedUsdcFloat64, _ := receivedUsdcInDecimals.Float64()
+			expectedUsdcFloat64, _ := expectedReceivedUsdcInDecimals.Float64()
+			assert.InDelta(t, expectedUsdcFloat64, receivedUsdcFloat64, tolerance, "Wrong Usdc received amount")
 			assert.Equal(t, newBalanceSDai, expectedBalanceSDai, "sDai balance should be equal to the initial balance minus the mock amount")
 		})
 	}

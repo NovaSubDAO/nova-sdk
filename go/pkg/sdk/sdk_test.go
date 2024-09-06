@@ -219,16 +219,18 @@ func TestSdkCreateWithdrawTx(t *testing.T) {
 			mockReferral := big.NewInt(123)
 			spender := common.HexToAddress(tc.vaultAddress)
 
-			// stableAddress := common.HexToAddress(constants.StablecoinDetails[tc.chainId][tc.stable].Address)
+			stableAddress := common.HexToAddress(constants.StablecoinDetails[tc.chainId][tc.stable].Address)
 
 			initialBalanceSDai, err := getAssetUserBalance(tc.mockAddress, tc.sDai, client, tc.chainId, true)
 			if err != nil {
 				log.Fatalf("Failed to get user's sDai balance: %v", err)
 			}
-			// initialBalanceUsdc, err := getAssetUserBalance(tc.mockAddress, stableAddress, client, tc.chainId, true)
-			// if err != nil {
-			// 	log.Fatalf("Failed to get user's sDai balance: %v", err)
-			// }
+			fmt.Println("initial balance sDai: ", initialBalanceSDai)
+			initialBalanceUsdc, err := getAssetUserBalance(tc.mockAddress, stableAddress, client, tc.chainId, true)
+			if err != nil {
+				log.Fatalf("Failed to get user's sDai balance: %v", err)
+			}
+			fmt.Println("initial balance Usdc: ", initialBalanceUsdc)
 
 			fmt.Println()
 			fmt.Println("------------------------------ Increasing allowance... ------------------------------")
@@ -271,14 +273,14 @@ func TestSdkCreateWithdrawTx(t *testing.T) {
 			if err != nil {
 				log.Fatalf("Failed to get user's sDai balance: %v", err)
 			}
+			fmt.Println("New balance sDai: ", newBalanceSDai)
+			newBalanceUsdc, err := getAssetUserBalance(tc.mockAddress, stableAddress, client, tc.chainId, true)
+			if err != nil {
+				log.Fatalf("Failed to get user's sDai balance: %v", err)
+			}
+			fmt.Println("New balance Usdc: ", newBalanceUsdc)
 
 			expectedBalanceSDai := new(big.Int).Sub(initialBalanceSDai, mockAmount)
-			// expectedReceivedUsdc, err := novaSdk.GetPrice(tc.stable)
-			if err != nil {
-				log.Fatalf("Failed to get user's received sDai amount: %v", err)
-			}
-
-			// assert.Equal(t, , expectedReceivedUsdc)
 			assert.Equal(t, newBalanceSDai, expectedBalanceSDai, "sDai balance should be equal to the initial balance minus the mock amount")
 		})
 	}
@@ -497,12 +499,9 @@ func increaseAllowance(from common.Address, spender common.Address, token common
 func scaleTo6decimals(roundedExpectedReceivedSDai *big.Int, scaleFactor *big.Float) *big.Int {
 	finalExpectedReceivedSDai := new(big.Float).SetInt(roundedExpectedReceivedSDai)
 	finalExpectedReceivedSDai.Quo(finalExpectedReceivedSDai, scaleFactor)
-	fmt.Println("finalExpectedReceivedSDai:", finalExpectedReceivedSDai.String())
 
-	// Convert the final result to *big.Int
 	expectedReceivedSDaiInt := new(big.Int)
 	finalExpectedReceivedSDai.Int(expectedReceivedSDaiInt)
-	fmt.Println("expectedReceivedSDaiInt:", expectedReceivedSDaiInt.String())
 
 	return expectedReceivedSDaiInt
 }

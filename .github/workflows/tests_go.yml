@@ -52,21 +52,6 @@ jobs:
         run: make compile
         working-directory: go
 
-      - name: Start Anvil
-        run: |
-          nohup anvil --fork-url $OPT_RPC_ENDPOINT &
-        working-directory: go
-
-      - name: Update OPT_RPC_ENDPOINT
-        run: |
-          echo "OPT_RPC_ENDPOINT=http://localhost:8545" >> $GITHUB_ENV
-
-      - name: Set initial balance for test address
-        run: |
-          curl http://localhost:8545 -X POST -H "Content-Type: application/json" \
-            --data '{"method":"anvil_setBalance","params":["'"$TEST_ADDRESS"'", "0x56BC75E2D63100000"],"id":1,"jsonrpc":"2.0"}'
-        working-directory: go
-
       - name: Run tests
         run: make test
         working-directory: go

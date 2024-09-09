@@ -9,6 +9,8 @@ on:
 env:
   ETH_RPC_ENDPOINT: ${{ secrets.ETH_RPC_ENDPOINT }}
   OPT_RPC_ENDPOINT: ${{ secrets.OPT_RPC_ENDPOINT }}
+  TEST_ADDRESS: ${{ secrets.TEST_ADDRESS }}
+  TEST_PRIVATE_KEY: ${{ secrets.TEST_PRIVATE_KEY }}
 
 jobs:
   test:
@@ -27,6 +29,11 @@ jobs:
       - name: Get dependencies
         run: go mod tidy
         working-directory: go
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
       - name: Install solc
         run: |

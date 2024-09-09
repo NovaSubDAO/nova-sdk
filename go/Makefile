@@ -1,3 +1,6 @@
+ANVIL_PORT = 8545
+ANVIL_PID_FILE = /tmp/anvil.pid
+
 optimism_artifacts := $(wildcard pkg/sdk/optimism/abis/*.json)
 ethereum_artifacts := $(wildcard pkg/sdk/ethereum/abis/*.json)
 
@@ -15,4 +18,5 @@ clean:
 	rm -f pkg/sdk/optimism/abis/*.go
 	rm -f pkg/sdk/ethereum/abis/*.go
 
-test :; go test github.com/NovaSubDAO/nova-sdk/go/...
+test: run_tests.sh
+	@./run_tests.sh

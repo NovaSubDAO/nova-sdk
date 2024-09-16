@@ -264,72 +264,6 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 	return percentageChange, expectedPriceFloat, executedPriceFloat, nil
 }
 
-func (sdk *SdkOptimism) createSwapData(callTo common.Address, approveTo common.Address, sendingAssetId common.Address, receivingAssetId common.Address, fromAmount *big.Int, fromStableTosDai bool) ([]optimismContracts.LibSwapSwapData, error) {
-	poolABI, err := abi.JSON(strings.NewReader(optimismContracts.VelodromePoolMetaData.ABI))
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse ABI: %w", err)
-	}
-
-	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
-	if err != nil {
-		return nil, fmt.Errorf("error loading client: %w", err)
-	}
-
-	veloPool, err := optimismContracts.NewVelodromePool(callTo, client)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create VelodromePool instance: %w", err)
-	}
-
-	slot0Data, err := veloPool.Slot0(nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get slot0 data: %w", err)
-	}
-
-	sqrtPriceX96 := slot0Data.SqrtPriceX96
-	isStableFirst := true
-
-	var num *big.Int
-	if fromStableTosDai {
-		num = big.NewInt(95)
-	} else {
-		num = big.NewInt(105)
-	}
-
-	var sign *big.Int
-	if isStableFirst {
-		sign = big.NewInt(1)
-	} else {
-		sign = big.NewInt(-1)
-	}
-
-	amountSpecified := new(big.Int).Set(fromAmount)
-	amountSpecified.Mul(amountSpecified, sign)
-
-	sqrtPriceLimitX96 := new(big.Int).Set(sqrtPriceX96)
-	sqrtPriceLimitX96.Mul(sqrtPriceLimitX96, num)
-	sqrtPriceLimitX96.Div(sqrtPriceLimitX96, big.NewInt(100))
-
-	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
-
-	data, err := poolABI.Pack("swap", vaultAddress, fromStableTosDai, amountSpecified, sqrtPriceLimitX96, []byte{})
-	if err != nil {
-		return nil, fmt.Errorf("ABI pack failed: %v", err)
-	}
-
-	swapData := []optimismContracts.LibSwapSwapData{
-		{
-			CallTo:           callTo,
-			ApproveTo:        approveTo,
-			SendingAssetId:   sendingAssetId,
-			ReceivingAssetId: receivingAssetId,
-			FromAmount:       fromAmount,
-			CallData:         data,
-			RequiresDeposit:  true,
-		},
-	}
-	return swapData, nil
-}
-
 func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fromAddress common.Address, amount *big.Int, referral *big.Int) (string, error) {
 	ok := sdk.isStablecoinSupported(stable)
 	if !ok {
@@ -338,13 +272,6 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 
 	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
 	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
-	sDaiAddress := common.HexToAddress(sdk.Config.SDai)
-	liquidityPoolAddress := common.HexToAddress(sdk.Config.LiquidityPool)
-
-	swapData, err := sdk.createSwapData(liquidityPoolAddress, liquidityPoolAddress, stableAddress, sDaiAddress, amount, true)
-	if err != nil {
-		return "", fmt.Errorf("failed to create SwapData instance: %v", err)
-	}
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
@@ -365,13 +292,13 @@ func (sdk *SdkOptimism) CreateDepositTransaction(stable constants.Stablecoin, fr
 		return "", fmt.Errorf("allowance is too low. First call approve function on USDC contract")
 	}
 
-	novaVaultV2Abi, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultV2ABI))
+	novaVaultAbi, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultABI))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse contract ABI: %w", err)
 	}
 
 	referralUint16 := uint16(referral.Uint64())
-	data, err := novaVaultV2Abi.Pack("deposit", swapData, referralUint16)
+	data, err := novaVaultAbi.Pack("deposit", stableAddress, amount, referralUint16)
 	if err != nil {
 		return "", fmt.Errorf("ABI pack failed: %v", err)
 	}
@@ -398,12 +325,7 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
 	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
 	sDaiAddress := common.HexToAddress(sdk.Config.SDai)
-	liquidityPoolAddress := common.HexToAddress(sdk.Config.LiquidityPool)
 
-	swapData, err := sdk.createSwapData(liquidityPoolAddress, liquidityPoolAddress, sDaiAddress, stableAddress, amount, false)
-	if err != nil {
-		return "", fmt.Errorf("failed to create SwapData instance: %w", err)
-	}
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("failed to connect to the Optimism client: %v", err)
@@ -423,13 +345,13 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 		return "", fmt.Errorf("allowance is too low. First call approve function on sDai contract")
 	}
 
-	novaVaultV2, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultV2MetaData.ABI))
+	novaVault, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultABI))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse contract ABI: %w", err)
 	}
 
 	referralUint16 := uint16(referral.Uint64())
-	data, err := novaVaultV2.Pack("withdraw", referralUint16, swapData)
+	data, err := novaVault.Pack("withdraw", stableAddress, amount, referralUint16)
 	if err != nil {
 		return "", fmt.Errorf("ABI pack failed: %v", err)
 	}

@@ -18,6 +18,7 @@ import (
 	optimismContracts "github.com/NovaSubDAO/nova-sdk/go/pkg/sdk/optimism/abis"
 	"github.com/NovaSubDAO/nova-sdk/go/pkg/utils"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -26,42 +27,45 @@ import (
 )
 
 type testCase struct {
-	rpcEndpoint   string
-	chainId       int64
-	vault         string
-	vaultAddress  common.Address
-	vaultDecimals int64
-	stable        constants.Stablecoin
-	stableAddress common.Address
-	sDai          common.Address
-	testAddress   common.Address
-	privateKeyHex string
+	rpcEndpoint    string
+	chainId        int64
+	vault          string
+	vaultAddress   common.Address
+	vaultDecimals  int64
+	initialAdapter common.Address
+	stable         constants.Stablecoin
+	stableAddress  common.Address
+	sDai           common.Address
+	testAddress    common.Address
+	privateKeyHex  string
 }
 
 var testCases = []testCase{
 	{
-		rpcEndpoint:   os.Getenv("ETH_RPC_ENDPOINT"),
-		chainId:       1,
-		vault:         constants.ConfigDetails[1].VaultAddress,
-		vaultAddress:  common.HexToAddress(constants.ConfigDetails[1].VaultAddress),
-		vaultDecimals: constants.ConfigDetails[1].VaultDecimals,
-		stable:        constants.DAI,
-		stableAddress: common.HexToAddress(constants.StablecoinDetails[1][constants.DAI].Address),
-		sDai:          common.HexToAddress(constants.ConfigDetails[1].SDai),
-		testAddress:   common.HexToAddress(os.Getenv("TEST_ADDRESS")),
-		privateKeyHex: os.Getenv("TEST_PRIVATE_KEY"),
+		rpcEndpoint:    os.Getenv("ETH_RPC_ENDPOINT"),
+		chainId:        1,
+		vault:          constants.ConfigDetails[1].VaultAddress,
+		vaultAddress:   common.HexToAddress(constants.ConfigDetails[1].VaultAddress),
+		vaultDecimals:  constants.ConfigDetails[1].VaultDecimals,
+		initialAdapter: common.HexToAddress(constants.ConfigDetails[1].AdapterAddress),
+		stable:         constants.DAI,
+		stableAddress:  common.HexToAddress(constants.StablecoinDetails[1][constants.DAI].Address),
+		sDai:           common.HexToAddress(constants.ConfigDetails[1].SDai),
+		testAddress:    common.HexToAddress(os.Getenv("TEST_ADDRESS")),
+		privateKeyHex:  os.Getenv("TEST_PRIVATE_KEY"),
 	},
 	{
-		rpcEndpoint:   os.Getenv("OPT_RPC_ENDPOINT"),
-		chainId:       10,
-		vault:         constants.ConfigDetails[10].VaultAddress,
-		vaultAddress:  common.HexToAddress(constants.ConfigDetails[10].VaultAddress),
-		vaultDecimals: constants.ConfigDetails[10].VaultDecimals,
-		stable:        constants.USDC,
-		stableAddress: common.HexToAddress(constants.StablecoinDetails[10][constants.USDC].Address),
-		sDai:          common.HexToAddress(constants.ConfigDetails[10].SDai),
-		testAddress:   common.HexToAddress(os.Getenv("TEST_ADDRESS")),
-		privateKeyHex: os.Getenv("TEST_PRIVATE_KEY"),
+		rpcEndpoint:    os.Getenv("OPT_RPC_ENDPOINT"),
+		chainId:        10,
+		vault:          constants.ConfigDetails[10].VaultAddress,
+		vaultAddress:   common.HexToAddress(constants.ConfigDetails[10].VaultAddress),
+		vaultDecimals:  constants.ConfigDetails[10].VaultDecimals,
+		initialAdapter: common.HexToAddress(constants.ConfigDetails[10].AdapterAddress),
+		stable:         constants.USDC,
+		stableAddress:  common.HexToAddress(constants.StablecoinDetails[10][constants.USDC].Address),
+		sDai:           common.HexToAddress(constants.ConfigDetails[10].SDai),
+		testAddress:    common.HexToAddress(os.Getenv("TEST_ADDRESS")),
+		privateKeyHex:  os.Getenv("TEST_PRIVATE_KEY"),
 	},
 }
 
@@ -319,6 +323,58 @@ func TestSdkCreateWithdrawTx(t *testing.T) {
 	}
 }
 
+func TestReplaceAdapter(t *testing.T) {
+	for _, tc := range testCases {
+		t.Run("ChainID: "+strconv.FormatInt(tc.chainId, 10), func(t *testing.T) {
+			if tc.chainId == 1 {
+				t.Skip("Skipping test for chain ID 1")
+				return
+			}
+
+			client, err := ethclient.Dial(tc.rpcEndpoint)
+			if err != nil {
+				log.Fatalf("Failed to connect to the client: %v", err)
+			}
+
+			privateKey, err := crypto.HexToECDSA(tc.privateKeyHex)
+			if err != nil {
+				log.Fatalf("Failed to parse private key: %v", err)
+			}
+
+			newAdapter := common.HexToAddress("0xe20aB0BaaF8d581f48FECC84dC32be076C223860")
+
+			novaVaultInstance, err := optimismContracts.NewNovaVault(tc.vaultAddress, client)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			activeAdapter, err := novaVaultInstance.NovaAdapters(&bind.CallOpts{Context: context.Background()}, tc.stableAddress)
+			if err != nil {
+				log.Fatal(err)
+			}
+			assert.Equal(t, activeAdapter, tc.initialAdapter, "The active adapter should match the initial adapter before invoking the 'replaceAdapter' function")
+
+			replaceAdapter(tc.testAddress, tc.vaultAddress, tc.stableAddress, newAdapter, privateKey, tc.rpcEndpoint, tc.chainId)
+			activeAdapter, err = novaVaultInstance.NovaAdapters(&bind.CallOpts{Context: context.Background()}, tc.stableAddress)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			assert.Equal(t, activeAdapter, newAdapter, "The active adapter should match the new adapter after invoking the 'replaceAdapter' function")
+
+			replaceAdapter(tc.testAddress, tc.vaultAddress, tc.stableAddress, tc.initialAdapter, privateKey, tc.rpcEndpoint, tc.chainId)
+			activeAdapter, err = novaVaultInstance.NovaAdapters(&bind.CallOpts{Context: context.Background()}, tc.stableAddress)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			assert.Equal(t, activeAdapter, tc.initialAdapter, "The active adapter should correspond to the initial adapter before invoking the 'TestSdkCreateDepositTx' and 'TestSdkCreateWithdrawTx' functions")
+			TestSdkCreateDepositTx(t)
+			TestSdkCreateWithdrawTx(t)
+		})
+	}
+}
+
 func TestSdkGetSDaiPrice(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run("ChainID: "+strconv.FormatInt(tc.chainId, 10), func(t *testing.T) {
@@ -414,6 +470,37 @@ func TestSdkGetSupportedStablecoins(t *testing.T) {
 			assert.Equal(t, tc.stable, stables[0], "The first stablecoin is not correct")
 		})
 	}
+}
+
+func replaceAdapter(from common.Address, vaultAddress common.Address, stable common.Address, adapter common.Address, privateKey *ecdsa.PrivateKey, rpcEndpoint string, chainId int64) {
+	novaVaultAbi, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultABI))
+	if err != nil {
+		log.Fatalf("failed to parse contract ABI: %v", err)
+	}
+
+	data, err := novaVaultAbi.Pack("replaceAdapter", stable, adapter)
+	if err != nil {
+		log.Fatalf("ABI pack failed: %v", err)
+	}
+
+	tx, err := utils.CreateTransaction(from, vaultAddress, data, rpcEndpoint)
+	if err != nil {
+		log.Fatalf("Replace adapter failed: failed to create transaction: %v", err)
+	}
+
+	fmt.Println("- Transaction created")
+
+	signedTx, err := utils.SignTransaction(tx, big.NewInt(chainId), privateKey)
+	if err != nil {
+		log.Fatalf("Replace adapter failed: failed to sign transaction: %v", err)
+	}
+	fmt.Println("-- Transaction signed")
+
+	err = utils.SendTransaction(signedTx, rpcEndpoint)
+	if err != nil {
+		log.Fatalf("Replace adapter failed: failed to send transaction: %v", err)
+	}
+	fmt.Println("---- Transaction sent")
 }
 
 func printUserEthBalance(from common.Address, client *ethclient.Client) {

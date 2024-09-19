@@ -3,7 +3,7 @@
     "type": "constructor",
     "inputs": [
       {
-        "name": "_sDAI",
+        "name": "_savings",
         "type": "address",
         "internalType": "address"
       },
@@ -49,7 +49,7 @@
         "internalType": "address"
       },
       {
-        "name": "assets",
+        "name": "amounInStable",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -75,6 +75,57 @@
   },
   {
     "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "renounceOwnership",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "replaceAdapter",
+    "inputs": [
+      {
+        "name": "stable",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "adapter",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "transferOwnership",
+    "inputs": [
+      {
+        "name": "newOwner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "withdraw",
     "inputs": [
       {
@@ -86,6 +137,11 @@
         "name": "shares",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "referral",
+        "type": "uint16",
+        "internalType": "uint16"
       }
     ],
     "outputs": [
@@ -115,7 +171,26 @@
       {
         "name": "adapter",
         "type": "address",
-        "indexed": false,
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
+      {
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
         "internalType": "address"
       }
     ],
@@ -145,5 +220,30 @@
       }
     ],
     "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "ADAPTER_ALREADY_APPROVED",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "INVALID_ADDRESS",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "INVALID_STABLE_TO_ADAPTER_MAPPING",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MISMATCHING_ARRAYS_LENGTH",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NO_ADAPTER_APPROVED",
+    "inputs": []
   }
 ]

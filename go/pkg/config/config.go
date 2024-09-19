@@ -9,7 +9,7 @@ import (
 type Config struct {
 	VaultAddress  string `json:"vaultAddress"`
 	VaultDecimals int64  `json:"vaultDecimals"`
-	SDai          string
+	Savings       string
 	LiquidityPool string
 	RpcEndpoint   string
 	ChainId       int64
@@ -19,7 +19,7 @@ func convertConfigDataToConfig(data constants.ConfigData) Config {
 	return Config{
 		VaultAddress:  data.VaultAddress,
 		VaultDecimals: data.VaultDecimals,
-		SDai:          data.SDai,
+		Savings:       data.Savings,
 		LiquidityPool: data.LiquidityPool,
 	}
 }

@@ -31,7 +31,7 @@ var (
 
 // NovaVaultMetaData contains all meta data concerning the NovaVault contract.
 var NovaVaultMetaData = &bind.MetaData{
-	ABI: "[{\"type\":\"constructor\",\"inputs\":[{\"name\":\"_sDAI\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"stables\",\"type\":\"address[]\",\"internalType\":\"address[]\"},{\"name\":\"novaAdapters\",\"type\":\"address[]\",\"internalType\":\"address[]\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"_novaAdapters\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"deposit\",\"inputs\":[{\"name\":\"stable\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"assets\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"referral\",\"type\":\"uint16\",\"internalType\":\"uint16\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"withdraw\",\"inputs\":[{\"name\":\"stable\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"shares\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"AdapterApproval\",\"inputs\":[{\"name\":\"stable\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"},{\"name\":\"adapter\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Referral\",\"inputs\":[{\"name\":\"referral\",\"type\":\"uint16\",\"indexed\":false,\"internalType\":\"uint16\"},{\"name\":\"depositor\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false}]",
+	ABI: "[{\"type\":\"constructor\",\"inputs\":[{\"name\":\"_savings\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"stables\",\"type\":\"address[]\",\"internalType\":\"address[]\"},{\"name\":\"novaAdapters\",\"type\":\"address[]\",\"internalType\":\"address[]\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"_novaAdapters\",\"inputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"deposit\",\"inputs\":[{\"name\":\"stable\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"amounInStable\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"referral\",\"type\":\"uint16\",\"internalType\":\"uint16\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"owner\",\"inputs\":[],\"outputs\":[{\"name\":\"\",\"type\":\"address\",\"internalType\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"renounceOwnership\",\"inputs\":[],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"replaceAdapter\",\"inputs\":[{\"name\":\"stable\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"adapter\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"transferOwnership\",\"inputs\":[{\"name\":\"newOwner\",\"type\":\"address\",\"internalType\":\"address\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"withdraw\",\"inputs\":[{\"name\":\"stable\",\"type\":\"address\",\"internalType\":\"address\"},{\"name\":\"shares\",\"type\":\"uint256\",\"internalType\":\"uint256\"},{\"name\":\"referral\",\"type\":\"uint16\",\"internalType\":\"uint16\"}],\"outputs\":[{\"name\":\"\",\"type\":\"bool\",\"internalType\":\"bool\"},{\"name\":\"\",\"type\":\"uint256\",\"internalType\":\"uint256\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"event\",\"name\":\"AdapterApproval\",\"inputs\":[{\"name\":\"stable\",\"type\":\"address\",\"indexed\":false,\"internalType\":\"address\"},{\"name\":\"adapter\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"OwnershipTransferred\",\"inputs\":[{\"name\":\"previousOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"newOwner\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"}],\"anonymous\":false},{\"type\":\"event\",\"name\":\"Referral\",\"inputs\":[{\"name\":\"referral\",\"type\":\"uint16\",\"indexed\":false,\"internalType\":\"uint16\"},{\"name\":\"depositor\",\"type\":\"address\",\"indexed\":true,\"internalType\":\"address\"},{\"name\":\"amount\",\"type\":\"uint256\",\"indexed\":false,\"internalType\":\"uint256\"}],\"anonymous\":false},{\"type\":\"error\",\"name\":\"ADAPTER_ALREADY_APPROVED\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"INVALID_ADDRESS\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"INVALID_STABLE_TO_ADAPTER_MAPPING\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"MISMATCHING_ARRAYS_LENGTH\",\"inputs\":[]},{\"type\":\"error\",\"name\":\"NO_ADAPTER_APPROVED\",\"inputs\":[]}]",
 }
 
 // NovaVaultABI is the input ABI used to generate the binding from.
@@ -211,46 +211,140 @@ func (_NovaVault *NovaVaultCallerSession) NovaAdapters(arg0 common.Address) (com
 	return _NovaVault.Contract.NovaAdapters(&_NovaVault.CallOpts, arg0)
 }
 
-// Deposit is a paid mutator transaction binding the contract method 0xd2d0e066.
+// Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
 //
-// Solidity: function deposit(address stable, uint256 assets, uint16 referral) returns(bool, uint256)
-func (_NovaVault *NovaVaultTransactor) Deposit(opts *bind.TransactOpts, stable common.Address, assets *big.Int, referral uint16) (*types.Transaction, error) {
-	return _NovaVault.contract.Transact(opts, "deposit", stable, assets, referral)
+// Solidity: function owner() view returns(address)
+func (_NovaVault *NovaVaultCaller) Owner(opts *bind.CallOpts) (common.Address, error) {
+	var out []interface{}
+	err := _NovaVault.contract.Call(opts, &out, "owner")
+
+	if err != nil {
+		return *new(common.Address), err
+	}
+
+	out0 := *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
+
+	return out0, err
+
+}
+
+// Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
+//
+// Solidity: function owner() view returns(address)
+func (_NovaVault *NovaVaultSession) Owner() (common.Address, error) {
+	return _NovaVault.Contract.Owner(&_NovaVault.CallOpts)
+}
+
+// Owner is a free data retrieval call binding the contract method 0x8da5cb5b.
+//
+// Solidity: function owner() view returns(address)
+func (_NovaVault *NovaVaultCallerSession) Owner() (common.Address, error) {
+	return _NovaVault.Contract.Owner(&_NovaVault.CallOpts)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0xd2d0e066.
 //
-// Solidity: function deposit(address stable, uint256 assets, uint16 referral) returns(bool, uint256)
-func (_NovaVault *NovaVaultSession) Deposit(stable common.Address, assets *big.Int, referral uint16) (*types.Transaction, error) {
-	return _NovaVault.Contract.Deposit(&_NovaVault.TransactOpts, stable, assets, referral)
+// Solidity: function deposit(address stable, uint256 amounInStable, uint16 referral) returns(bool, uint256)
+func (_NovaVault *NovaVaultTransactor) Deposit(opts *bind.TransactOpts, stable common.Address, amounInStable *big.Int, referral uint16) (*types.Transaction, error) {
+	return _NovaVault.contract.Transact(opts, "deposit", stable, amounInStable, referral)
 }
 
 // Deposit is a paid mutator transaction binding the contract method 0xd2d0e066.
 //
-// Solidity: function deposit(address stable, uint256 assets, uint16 referral) returns(bool, uint256)
-func (_NovaVault *NovaVaultTransactorSession) Deposit(stable common.Address, assets *big.Int, referral uint16) (*types.Transaction, error) {
-	return _NovaVault.Contract.Deposit(&_NovaVault.TransactOpts, stable, assets, referral)
+// Solidity: function deposit(address stable, uint256 amounInStable, uint16 referral) returns(bool, uint256)
+func (_NovaVault *NovaVaultSession) Deposit(stable common.Address, amounInStable *big.Int, referral uint16) (*types.Transaction, error) {
+	return _NovaVault.Contract.Deposit(&_NovaVault.TransactOpts, stable, amounInStable, referral)
 }
 
-// Withdraw is a paid mutator transaction binding the contract method 0xf3fef3a3.
+// Deposit is a paid mutator transaction binding the contract method 0xd2d0e066.
 //
-// Solidity: function withdraw(address stable, uint256 shares) returns(bool, uint256)
-func (_NovaVault *NovaVaultTransactor) Withdraw(opts *bind.TransactOpts, stable common.Address, shares *big.Int) (*types.Transaction, error) {
-	return _NovaVault.contract.Transact(opts, "withdraw", stable, shares)
+// Solidity: function deposit(address stable, uint256 amounInStable, uint16 referral) returns(bool, uint256)
+func (_NovaVault *NovaVaultTransactorSession) Deposit(stable common.Address, amounInStable *big.Int, referral uint16) (*types.Transaction, error) {
+	return _NovaVault.Contract.Deposit(&_NovaVault.TransactOpts, stable, amounInStable, referral)
 }
 
-// Withdraw is a paid mutator transaction binding the contract method 0xf3fef3a3.
+// RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
 //
-// Solidity: function withdraw(address stable, uint256 shares) returns(bool, uint256)
-func (_NovaVault *NovaVaultSession) Withdraw(stable common.Address, shares *big.Int) (*types.Transaction, error) {
-	return _NovaVault.Contract.Withdraw(&_NovaVault.TransactOpts, stable, shares)
+// Solidity: function renounceOwnership() returns()
+func (_NovaVault *NovaVaultTransactor) RenounceOwnership(opts *bind.TransactOpts) (*types.Transaction, error) {
+	return _NovaVault.contract.Transact(opts, "renounceOwnership")
 }
 
-// Withdraw is a paid mutator transaction binding the contract method 0xf3fef3a3.
+// RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
 //
-// Solidity: function withdraw(address stable, uint256 shares) returns(bool, uint256)
-func (_NovaVault *NovaVaultTransactorSession) Withdraw(stable common.Address, shares *big.Int) (*types.Transaction, error) {
-	return _NovaVault.Contract.Withdraw(&_NovaVault.TransactOpts, stable, shares)
+// Solidity: function renounceOwnership() returns()
+func (_NovaVault *NovaVaultSession) RenounceOwnership() (*types.Transaction, error) {
+	return _NovaVault.Contract.RenounceOwnership(&_NovaVault.TransactOpts)
+}
+
+// RenounceOwnership is a paid mutator transaction binding the contract method 0x715018a6.
+//
+// Solidity: function renounceOwnership() returns()
+func (_NovaVault *NovaVaultTransactorSession) RenounceOwnership() (*types.Transaction, error) {
+	return _NovaVault.Contract.RenounceOwnership(&_NovaVault.TransactOpts)
+}
+
+// ReplaceAdapter is a paid mutator transaction binding the contract method 0x9f3ddf3e.
+//
+// Solidity: function replaceAdapter(address stable, address adapter) returns()
+func (_NovaVault *NovaVaultTransactor) ReplaceAdapter(opts *bind.TransactOpts, stable common.Address, adapter common.Address) (*types.Transaction, error) {
+	return _NovaVault.contract.Transact(opts, "replaceAdapter", stable, adapter)
+}
+
+// ReplaceAdapter is a paid mutator transaction binding the contract method 0x9f3ddf3e.
+//
+// Solidity: function replaceAdapter(address stable, address adapter) returns()
+func (_NovaVault *NovaVaultSession) ReplaceAdapter(stable common.Address, adapter common.Address) (*types.Transaction, error) {
+	return _NovaVault.Contract.ReplaceAdapter(&_NovaVault.TransactOpts, stable, adapter)
+}
+
+// ReplaceAdapter is a paid mutator transaction binding the contract method 0x9f3ddf3e.
+//
+// Solidity: function replaceAdapter(address stable, address adapter) returns()
+func (_NovaVault *NovaVaultTransactorSession) ReplaceAdapter(stable common.Address, adapter common.Address) (*types.Transaction, error) {
+	return _NovaVault.Contract.ReplaceAdapter(&_NovaVault.TransactOpts, stable, adapter)
+}
+
+// TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
+//
+// Solidity: function transferOwnership(address newOwner) returns()
+func (_NovaVault *NovaVaultTransactor) TransferOwnership(opts *bind.TransactOpts, newOwner common.Address) (*types.Transaction, error) {
+	return _NovaVault.contract.Transact(opts, "transferOwnership", newOwner)
+}
+
+// TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
+//
+// Solidity: function transferOwnership(address newOwner) returns()
+func (_NovaVault *NovaVaultSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
+	return _NovaVault.Contract.TransferOwnership(&_NovaVault.TransactOpts, newOwner)
+}
+
+// TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
+//
+// Solidity: function transferOwnership(address newOwner) returns()
+func (_NovaVault *NovaVaultTransactorSession) TransferOwnership(newOwner common.Address) (*types.Transaction, error) {
+	return _NovaVault.Contract.TransferOwnership(&_NovaVault.TransactOpts, newOwner)
+}
+
+// Withdraw is a paid mutator transaction binding the contract method 0x17fe784c.
+//
+// Solidity: function withdraw(address stable, uint256 shares, uint16 referral) returns(bool, uint256)
+func (_NovaVault *NovaVaultTransactor) Withdraw(opts *bind.TransactOpts, stable common.Address, shares *big.Int, referral uint16) (*types.Transaction, error) {
+	return _NovaVault.contract.Transact(opts, "withdraw", stable, shares, referral)
+}
+
+// Withdraw is a paid mutator transaction binding the contract method 0x17fe784c.
+//
+// Solidity: function withdraw(address stable, uint256 shares, uint16 referral) returns(bool, uint256)
+func (_NovaVault *NovaVaultSession) Withdraw(stable common.Address, shares *big.Int, referral uint16) (*types.Transaction, error) {
+	return _NovaVault.Contract.Withdraw(&_NovaVault.TransactOpts, stable, shares, referral)
+}
+
+// Withdraw is a paid mutator transaction binding the contract method 0x17fe784c.
+//
+// Solidity: function withdraw(address stable, uint256 shares, uint16 referral) returns(bool, uint256)
+func (_NovaVault *NovaVaultTransactorSession) Withdraw(stable common.Address, shares *big.Int, referral uint16) (*types.Transaction, error) {
+	return _NovaVault.Contract.Withdraw(&_NovaVault.TransactOpts, stable, shares, referral)
 }
 
 // NovaVaultAdapterApprovalIterator is returned from FilterAdapterApproval and is used to iterate over the raw logs and unpacked data for AdapterApproval events raised by the NovaVault contract.
@@ -329,10 +423,15 @@ type NovaVaultAdapterApproval struct {
 
 // FilterAdapterApproval is a free log retrieval operation binding the contract event 0x2a03353a3cafefd9bd1e60174ed856d38b75dc30ae89e43387bd92c4689a814b.
 //
-// Solidity: event AdapterApproval(address stable, address adapter)
-func (_NovaVault *NovaVaultFilterer) FilterAdapterApproval(opts *bind.FilterOpts) (*NovaVaultAdapterApprovalIterator, error) {
+// Solidity: event AdapterApproval(address stable, address indexed adapter)
+func (_NovaVault *NovaVaultFilterer) FilterAdapterApproval(opts *bind.FilterOpts, adapter []common.Address) (*NovaVaultAdapterApprovalIterator, error) {
 
-	logs, sub, err := _NovaVault.contract.FilterLogs(opts, "AdapterApproval")
+	var adapterRule []interface{}
+	for _, adapterItem := range adapter {
+		adapterRule = append(adapterRule, adapterItem)
+	}
+
+	logs, sub, err := _NovaVault.contract.FilterLogs(opts, "AdapterApproval", adapterRule)
 	if err != nil {
 		return nil, err
 	}
@@ -341,10 +440,15 @@ func (_NovaVault *NovaVaultFilterer) FilterAdapterApproval(opts *bind.FilterOpts
 
 // WatchAdapterApproval is a free log subscription operation binding the contract event 0x2a03353a3cafefd9bd1e60174ed856d38b75dc30ae89e43387bd92c4689a814b.
 //
-// Solidity: event AdapterApproval(address stable, address adapter)
-func (_NovaVault *NovaVaultFilterer) WatchAdapterApproval(opts *bind.WatchOpts, sink chan<- *NovaVaultAdapterApproval) (event.Subscription, error) {
+// Solidity: event AdapterApproval(address stable, address indexed adapter)
+func (_NovaVault *NovaVaultFilterer) WatchAdapterApproval(opts *bind.WatchOpts, sink chan<- *NovaVaultAdapterApproval, adapter []common.Address) (event.Subscription, error) {
 
-	logs, sub, err := _NovaVault.contract.WatchLogs(opts, "AdapterApproval")
+	var adapterRule []interface{}
+	for _, adapterItem := range adapter {
+		adapterRule = append(adapterRule, adapterItem)
+	}
+
+	logs, sub, err := _NovaVault.contract.WatchLogs(opts, "AdapterApproval", adapterRule)
 	if err != nil {
 		return nil, err
 	}
@@ -378,10 +482,163 @@ func (_NovaVault *NovaVaultFilterer) WatchAdapterApproval(opts *bind.WatchOpts, 
 
 // ParseAdapterApproval is a log parse operation binding the contract event 0x2a03353a3cafefd9bd1e60174ed856d38b75dc30ae89e43387bd92c4689a814b.
 //
-// Solidity: event AdapterApproval(address stable, address adapter)
+// Solidity: event AdapterApproval(address stable, address indexed adapter)
 func (_NovaVault *NovaVaultFilterer) ParseAdapterApproval(log types.Log) (*NovaVaultAdapterApproval, error) {
 	event := new(NovaVaultAdapterApproval)
 	if err := _NovaVault.contract.UnpackLog(event, "AdapterApproval", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// NovaVaultOwnershipTransferredIterator is returned from FilterOwnershipTransferred and is used to iterate over the raw logs and unpacked data for OwnershipTransferred events raised by the NovaVault contract.
+type NovaVaultOwnershipTransferredIterator struct {
+	Event *NovaVaultOwnershipTransferred // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *NovaVaultOwnershipTransferredIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(NovaVaultOwnershipTransferred)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(NovaVaultOwnershipTransferred)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *NovaVaultOwnershipTransferredIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *NovaVaultOwnershipTransferredIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// NovaVaultOwnershipTransferred represents a OwnershipTransferred event raised by the NovaVault contract.
+type NovaVaultOwnershipTransferred struct {
+	PreviousOwner common.Address
+	NewOwner      common.Address
+	Raw           types.Log // Blockchain specific contextual infos
+}
+
+// FilterOwnershipTransferred is a free log retrieval operation binding the contract event 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0.
+//
+// Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
+func (_NovaVault *NovaVaultFilterer) FilterOwnershipTransferred(opts *bind.FilterOpts, previousOwner []common.Address, newOwner []common.Address) (*NovaVaultOwnershipTransferredIterator, error) {
+
+	var previousOwnerRule []interface{}
+	for _, previousOwnerItem := range previousOwner {
+		previousOwnerRule = append(previousOwnerRule, previousOwnerItem)
+	}
+	var newOwnerRule []interface{}
+	for _, newOwnerItem := range newOwner {
+		newOwnerRule = append(newOwnerRule, newOwnerItem)
+	}
+
+	logs, sub, err := _NovaVault.contract.FilterLogs(opts, "OwnershipTransferred", previousOwnerRule, newOwnerRule)
+	if err != nil {
+		return nil, err
+	}
+	return &NovaVaultOwnershipTransferredIterator{contract: _NovaVault.contract, event: "OwnershipTransferred", logs: logs, sub: sub}, nil
+}
+
+// WatchOwnershipTransferred is a free log subscription operation binding the contract event 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0.
+//
+// Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
+func (_NovaVault *NovaVaultFilterer) WatchOwnershipTransferred(opts *bind.WatchOpts, sink chan<- *NovaVaultOwnershipTransferred, previousOwner []common.Address, newOwner []common.Address) (event.Subscription, error) {
+
+	var previousOwnerRule []interface{}
+	for _, previousOwnerItem := range previousOwner {
+		previousOwnerRule = append(previousOwnerRule, previousOwnerItem)
+	}
+	var newOwnerRule []interface{}
+	for _, newOwnerItem := range newOwner {
+		newOwnerRule = append(newOwnerRule, newOwnerItem)
+	}
+
+	logs, sub, err := _NovaVault.contract.WatchLogs(opts, "OwnershipTransferred", previousOwnerRule, newOwnerRule)
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(NovaVaultOwnershipTransferred)
+				if err := _NovaVault.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseOwnershipTransferred is a log parse operation binding the contract event 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0.
+//
+// Solidity: event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
+func (_NovaVault *NovaVaultFilterer) ParseOwnershipTransferred(log types.Log) (*NovaVaultOwnershipTransferred, error) {
+	event := new(NovaVaultOwnershipTransferred)
+	if err := _NovaVault.contract.UnpackLog(event, "OwnershipTransferred", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log

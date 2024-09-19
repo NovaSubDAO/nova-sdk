@@ -29,7 +29,7 @@ func NewSdkEthereum(cfg *config.Config) (*SdkEthereum, error) {
 		return nil, fmt.Errorf("Failed to connect to Ethereum client: %w", err)
 	}
 
-	contract, err := ethereumContracts.NewSavingsDaiCaller(common.HexToAddress(cfg.SDai), client)
+	contract, err := ethereumContracts.NewSavingsDaiCaller(common.HexToAddress(cfg.Savings), client)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to instantiate contract caller: %w", err)
 	}

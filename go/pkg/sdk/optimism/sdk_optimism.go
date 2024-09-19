@@ -27,7 +27,7 @@ func NewSdkOptimism(cfg *config.Config) (*SdkOptimism, error) {
 		return nil, fmt.Errorf("failed to connect to Optimism client: %w", err)
 	}
 
-	contract, err := optimismContracts.NewSavingsDaiCaller(common.HexToAddress(cfg.SDai), client)
+	contract, err := optimismContracts.NewSavingsDaiCaller(common.HexToAddress(cfg.Savings), client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to instantiate contract caller: %w", err)
 	}
@@ -80,7 +80,7 @@ func (sdk *SdkOptimism) GetPrice(stable constants.Stablecoin) (*big.Int, error) 
 	stableAddress := constants.StablecoinDetails[sdk.Config.ChainId][stable].Address
 	stableDecimals := constants.StablecoinDetails[sdk.Config.ChainId][stable].Decimals
 	tokenIn := common.HexToAddress(stableAddress)
-	tokenOut := common.HexToAddress(sdk.Config.SDai)
+	tokenOut := common.HexToAddress(sdk.Config.Savings)
 
 	base := big.NewInt(10)
 	one := new(big.Int).Exp(base, big.NewInt(int64(stableDecimals)), nil)
@@ -140,7 +140,7 @@ func (sdk *SdkOptimism) GetSDaiPrice() (*big.Int, error) {
 		return nil, fmt.Errorf("error loading client: %w", err)
 	}
 
-	oracleAddress := common.HexToAddress(constants.OptSDaiOracleAddress)
+	oracleAddress := common.HexToAddress(constants.OptSavingsOracleAddress)
 	oracle, err := optimismContracts.NewDSRAuthOracleCaller(oracleAddress, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load DSRAuthOracle contract: %w", err)
@@ -200,7 +200,7 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 	stableDecimals := constants.StablecoinDetails[sdk.Config.ChainId][stable].Decimals
 	sDaiDecimals := sdk.Config.VaultDecimals
 	tokenIn := common.HexToAddress(stableAddress)
-	tokenOut := common.HexToAddress(sdk.Config.SDai)
+	tokenOut := common.HexToAddress(sdk.Config.Savings)
 
 	base := big.NewInt(10)
 	one := new(big.Int).Exp(base, big.NewInt(int64(stableDecimals)), nil)
@@ -324,7 +324,7 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 
 	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
 	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
-	sDaiAddress := common.HexToAddress(sdk.Config.SDai)
+	sDaiAddress := common.HexToAddress(sdk.Config.Savings)
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {

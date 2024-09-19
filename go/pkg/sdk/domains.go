@@ -14,8 +14,8 @@ type SdkInterface interface {
 	GetSlippage(constants.Stablecoin, *big.Int) (float64, float64, float64, error)
 
 	GetConfig() *config.Config
-	GetSDaiPrice() (*big.Int, error)
-	GetSDaiTotalValue() (*big.Int, error)
+	GetSavingsPrice() (*big.Int, error)
+	GetSavingsTotalValue() (*big.Int, error)
 	GetSupportedStablecoins() ([]constants.Stablecoin, error)
 
 	CreateDepositTransaction(constants.Stablecoin, common.Address, *big.Int, *big.Int) (string, error)

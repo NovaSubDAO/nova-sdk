@@ -18,7 +18,7 @@ import (
 
 type SdkOptimism struct {
 	Config   *config.Config
-	Contract *optimismContracts.SavingsDaiCaller
+	Contract *optimismContracts.SavingsCaller
 }
 
 func NewSdkOptimism(cfg *config.Config) (*SdkOptimism, error) {
@@ -27,7 +27,7 @@ func NewSdkOptimism(cfg *config.Config) (*SdkOptimism, error) {
 		return nil, fmt.Errorf("failed to connect to Optimism client: %w", err)
 	}
 
-	contract, err := optimismContracts.NewSavingsDaiCaller(common.HexToAddress(cfg.Savings), client)
+	contract, err := optimismContracts.NewSavingsCaller(common.HexToAddress(cfg.Savings), client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to instantiate contract caller: %w", err)
 	}
@@ -133,7 +133,7 @@ func (sdk *SdkOptimism) GetPosition(stable constants.Stablecoin, address common.
 	return valueNormalized, nil
 }
 
-func (sdk *SdkOptimism) GetSDaiPrice() (*big.Int, error) {
+func (sdk *SdkOptimism) GetSavingsPrice() (*big.Int, error) {
 	// Packing the input arguments
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
@@ -160,13 +160,13 @@ func (sdk *SdkOptimism) GetSDaiPrice() (*big.Int, error) {
 	return price, nil
 }
 
-func (sdk *SdkOptimism) GetSDaiTotalValue() (*big.Int, error) {
+func (sdk *SdkOptimism) GetSavingsTotalValue() (*big.Int, error) {
 	totalSupply, err := sdk.Contract.TotalSupply(nil)
 	if err != nil {
 		return big.NewInt(0), err
 	}
 
-	price, err := sdk.GetSDaiPrice()
+	price, err := sdk.GetSavingsPrice()
 	if err != nil {
 		return big.NewInt(0), err
 	}
@@ -198,7 +198,7 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 	// Packing the input arguments
 	stableAddress := constants.StablecoinDetails[sdk.Config.ChainId][stable].Address
 	stableDecimals := constants.StablecoinDetails[sdk.Config.ChainId][stable].Decimals
-	sDaiDecimals := sdk.Config.VaultDecimals
+	savingsDecimals := sdk.Config.VaultDecimals
 	tokenIn := common.HexToAddress(stableAddress)
 	tokenOut := common.HexToAddress(sdk.Config.Savings)
 
@@ -222,15 +222,15 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 	}
 
 	stableTenPow := new(big.Int).Exp(base, big.NewInt(int64(stableDecimals)), nil)
-	sDaiTenPow := new(big.Int).Exp(base, big.NewInt(int64(sDaiDecimals)), nil)
+	savingsTenPow := new(big.Int).Exp(base, big.NewInt(int64(savingsDecimals)), nil)
 	stableTenPowFloat := new(big.Float).SetInt(stableTenPow)
-	sDaiTenPowFloat := new(big.Float).SetInt(sDaiTenPow)
+	savingsTenPowFloat := new(big.Float).SetInt(savingsTenPow)
 
 	oneFloat := new(big.Float).SetInt(one)
 	oneFloat.Quo(oneFloat, stableTenPowFloat)
 
 	resultOneFloat := new(big.Float).SetInt(resultOne)
-	resultOneFloat.Quo(resultOneFloat, sDaiTenPowFloat)
+	resultOneFloat.Quo(resultOneFloat, savingsTenPowFloat)
 
 	expectedPrice := new(big.Float).Quo(oneFloat, resultOneFloat)
 
@@ -248,7 +248,7 @@ func (sdk *SdkOptimism) GetSlippage(stable constants.Stablecoin, amount *big.Int
 	amountFloat.Quo(amountFloat, stableTenPowFloat)
 
 	resultAmountFloat := new(big.Float).SetInt(resultAmount)
-	resultAmountFloat.Quo(resultAmountFloat, sDaiTenPowFloat)
+	resultAmountFloat.Quo(resultAmountFloat, savingsTenPowFloat)
 
 	executedPrice := new(big.Float).Quo(amountFloat, resultAmountFloat)
 
@@ -324,25 +324,25 @@ func (sdk *SdkOptimism) CreateWithdrawTransaction(stable constants.Stablecoin, f
 
 	stableAddress := common.HexToAddress(constants.StablecoinDetails[sdk.Config.ChainId][stable].Address)
 	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
-	sDaiAddress := common.HexToAddress(sdk.Config.Savings)
+	savingsAddress := common.HexToAddress(sdk.Config.Savings)
 
 	client, err := ethclient.Dial(sdk.Config.RpcEndpoint)
 	if err != nil {
 		return "", fmt.Errorf("failed to connect to the Optimism client: %v", err)
 	}
 
-	sDaiContract, err := optimismContracts.NewSavingsDaiCaller(sDaiAddress, client)
+	savingsContract, err := optimismContracts.NewSavingsCaller(savingsAddress, client)
 	if err != nil {
-		return "", fmt.Errorf("failed to load SavingsDai contract: %w", err)
+		return "", fmt.Errorf("failed to load savings contract: %w", err)
 	}
 
-	result, err := sDaiContract.Allowance(nil, fromAddress, vaultAddress)
+	result, err := savingsContract.Allowance(nil, fromAddress, vaultAddress)
 	if err != nil {
 		return "", fmt.Errorf("failed to call Allowance function: %w", err)
 	}
 
 	if amount.Cmp(result) > 0 {
-		return "", fmt.Errorf("allowance is too low. First call approve function on sDai contract")
+		return "", fmt.Errorf("allowance is too low. First call approve function on savings contract")
 	}
 
 	novaVault, err := abi.JSON(strings.NewReader(optimismContracts.NovaVaultABI))

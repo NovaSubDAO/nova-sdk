@@ -20,7 +20,7 @@ import (
 
 type SdkEthereum struct {
 	Config   *config.Config
-	Contract *ethereumContracts.SavingsDaiCaller
+	Contract *ethereumContracts.SavingsCaller
 }
 
 func NewSdkEthereum(cfg *config.Config) (*SdkEthereum, error) {
@@ -29,7 +29,7 @@ func NewSdkEthereum(cfg *config.Config) (*SdkEthereum, error) {
 		return nil, fmt.Errorf("Failed to connect to Ethereum client: %w", err)
 	}
 
-	contract, err := ethereumContracts.NewSavingsDaiCaller(common.HexToAddress(cfg.Savings), client)
+	contract, err := ethereumContracts.NewSavingsCaller(common.HexToAddress(cfg.Savings), client)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to instantiate contract caller: %w", err)
 	}
@@ -55,7 +55,7 @@ func (sdk *SdkEthereum) GetPrice(stable constants.Stablecoin) (*big.Int, error) 
 		return big.NewInt(0), fmt.Errorf("stablecoin %s is not supported", stable)
 	}
 
-	price, err := sdk.GetSDaiPrice()
+	price, err := sdk.GetSavingsPrice()
 	if err != nil {
 		return big.NewInt(0), err
 	}
@@ -85,7 +85,7 @@ func (sdk *SdkEthereum) GetPosition(stable constants.Stablecoin, address common.
 	return valueNormalized, nil
 }
 
-func (sdk *SdkEthereum) GetSDaiPrice() (*big.Int, error) {
+func (sdk *SdkEthereum) GetSavingsPrice() (*big.Int, error) {
 	factor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(sdk.Config.VaultDecimals)), nil)
 	assets, err := sdk.Contract.ConvertToAssets(nil, factor)
 	if err != nil {
@@ -94,13 +94,13 @@ func (sdk *SdkEthereum) GetSDaiPrice() (*big.Int, error) {
 	return assets, nil
 }
 
-func (sdk *SdkEthereum) GetSDaiTotalValue() (*big.Int, error) {
+func (sdk *SdkEthereum) GetSavingsTotalValue() (*big.Int, error) {
 	totalSupply, err := sdk.Contract.TotalSupply(nil)
 	if err != nil {
 		return big.NewInt(0), err
 	}
 
-	price, err := sdk.GetSDaiPrice()
+	price, err := sdk.GetSavingsPrice()
 	if err != nil {
 		return big.NewInt(0), err
 	}
@@ -129,19 +129,19 @@ func (sdk *SdkEthereum) GetSlippage(stable constants.Stablecoin, amount *big.Int
 		return 0, 0, 0, fmt.Errorf("stablecoin %s is not supported", stable)
 	}
 
-	price, err := sdk.GetSDaiPrice()
+	price, err := sdk.GetSavingsPrice()
 	if err != nil {
 		return 0, 0, 0, err
 	}
 
-	sDaiDecimals := sdk.Config.VaultDecimals
+	savingsDecimals := sdk.Config.VaultDecimals
 	base := big.NewInt(10)
 
-	sDaiTenPow := new(big.Int).Exp(base, big.NewInt(int64(sDaiDecimals)), nil)
-	sDaiTenPowFloat := new(big.Float).SetInt(sDaiTenPow)
+	savingsTenPow := new(big.Int).Exp(base, big.NewInt(int64(savingsDecimals)), nil)
+	savingsTenPowFloat := new(big.Float).SetInt(savingsTenPow)
 
 	priceFloat := new(big.Float).SetInt(price)
-	priceFloat.Quo(priceFloat, sDaiTenPowFloat)
+	priceFloat.Quo(priceFloat, savingsTenPowFloat)
 
 	priceFloat64, _ := priceFloat.Float64()
 
@@ -186,7 +186,7 @@ func (sdk *SdkEthereum) CreateDepositTransaction(stable constants.Stablecoin, fr
 		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
 	}
 
-	contractAbi, err := abi.JSON(strings.NewReader(ethereumContracts.SavingsDaiABI))
+	contractAbi, err := abi.JSON(strings.NewReader(ethereumContracts.SavingsABI))
 	if err != nil {
 		return "", fmt.Errorf("Failed to parse contract ABI: %w", err)
 	}
@@ -227,18 +227,18 @@ func (sdk *SdkEthereum) CreateWithdrawTransaction(stable constants.Stablecoin, f
 
 	vaultAddress := common.HexToAddress(sdk.Config.VaultAddress)
 
-	sDaiContract, err := ethereumContracts.NewSavingsDaiCaller(vaultAddress, client)
+	savingsContract, err := ethereumContracts.NewSavingsCaller(vaultAddress, client)
 	if err != nil {
-		return "", fmt.Errorf("Failed to load SavingsDai contract: %w", err)
+		return "", fmt.Errorf("Failed to load Savings contract: %w", err)
 	}
 
-	result, err := sDaiContract.Allowance(nil, fromAddress, vaultAddress)
+	result, err := savingsContract.Allowance(nil, fromAddress, vaultAddress)
 	if err != nil {
 		return "", fmt.Errorf("Failed to call Allowance function: %w", err)
 	}
 
 	if amount.Cmp(result) > 0 {
-		return "", fmt.Errorf("Allowance is too low. First call approve function on sDai contract.")
+		return "", fmt.Errorf("Allowance is too low. First call approve function on savings contract.")
 	}
 
 	nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
@@ -251,7 +251,7 @@ func (sdk *SdkEthereum) CreateWithdrawTransaction(stable constants.Stablecoin, f
 		return "", fmt.Errorf("Failed to suggest gas price: %v", err)
 	}
 
-	contractAbi, err := abi.JSON(strings.NewReader(ethereumContracts.SavingsDaiABI))
+	contractAbi, err := abi.JSON(strings.NewReader(ethereumContracts.SavingsABI))
 	if err != nil {
 		return "", fmt.Errorf("failed to parse contract ABI: %w", err)
 	}

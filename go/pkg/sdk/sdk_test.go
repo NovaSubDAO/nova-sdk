@@ -201,7 +201,7 @@ func TestSdkCreateDepositTx(t *testing.T) {
 			receivedSavings6decimals := scaleByFactor(receivedSavings, scaleFactor)
 
 			assert.Equal(t, expectedBalanceStable, newBalanceStable, "Stable balance should be equal to the initial balance minus the mock amount")
-			assert.Equal(t, expectedReceivedSavings6Decimals, receivedSavings6decimals, "Wrong sDai received amount")
+			assert.Equal(t, expectedReceivedSavings6Decimals, receivedSavings6decimals, "Wrong savings received amount")
 		})
 	}
 }
@@ -362,7 +362,7 @@ func TestSdkGetSavingsPrice(t *testing.T) {
 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
 			assert.NoError(t, err)
 
-			price, err := novaSdk.GetSDaiPrice()
+			price, err := novaSdk.GetSavingsPrice()
 			assert.NoError(t, err)
 
 			lowerBound := big.NewInt(1e18)
@@ -428,7 +428,7 @@ func TestSdkGetSavingsTotalValue(t *testing.T) {
 			novaSdk, err := NewNovaSDK(tc.rpcEndpoint, tc.chainId)
 			assert.NoError(t, err)
 
-			position, err := novaSdk.GetSDaiTotalValue()
+			position, err := novaSdk.GetSavingsTotalValue()
 			assert.NoError(t, err)
 
 			lowerBound := big.NewInt(0)
@@ -507,9 +507,9 @@ func getAssetUserBalance(from common.Address, asset common.Address, client *ethc
 				return nil, fmt.Errorf("failed to get Dai user's balance: %v", err)
 			}
 		} else if asset == common.HexToAddress(constants.ConfigDetails[chainId].Savings) {
-			assetContract, err := ethereumContracts.NewSavingsDaiCaller(asset, client)
+			assetContract, err := ethereumContracts.NewSavingsCaller(asset, client)
 			if err != nil {
-				return nil, fmt.Errorf("failed to load SavingsDai contract: %w", err)
+				return nil, fmt.Errorf("failed to load Savings contract: %w", err)
 			}
 			balanceAsset, err = assetContract.BalanceOf(nil, from)
 			if err != nil {
@@ -530,9 +530,9 @@ func getAssetUserBalance(from common.Address, asset common.Address, client *ethc
 			}
 
 		} else if asset == common.HexToAddress(constants.ConfigDetails[chainId].Savings) {
-			assetContract, err := optimismContracts.NewSavingsDaiCaller(asset, client)
+			assetContract, err := optimismContracts.NewSavingsCaller(asset, client)
 			if err != nil {
-				return nil, fmt.Errorf("failed to load SavingsDai contract: %w", err)
+				return nil, fmt.Errorf("failed to load Savings contract: %w", err)
 			}
 			balanceAsset, err = assetContract.BalanceOf(nil, from)
 			if err != nil {
@@ -556,7 +556,7 @@ func increaseAllowance(from common.Address, spender common.Address, token common
 				log.Fatalf("Failed to parse Dai ABI: %v", err)
 			}
 		} else if token == common.HexToAddress(constants.ConfigDetails[chainId].Savings) {
-			asset, err = abi.JSON(strings.NewReader(ethereumContracts.SavingsDaiABI))
+			asset, err = abi.JSON(strings.NewReader(ethereumContracts.SavingsABI))
 			if err != nil {
 				log.Fatalf("Failed to parse savings ABI: %v", err)
 			}
@@ -570,7 +570,7 @@ func increaseAllowance(from common.Address, spender common.Address, token common
 				log.Fatalf("Failed to parse FiatTokenV22 ABI: %v", err)
 			}
 		} else if token == common.HexToAddress(constants.ConfigDetails[chainId].Savings) {
-			asset, err = abi.JSON(strings.NewReader(optimismContracts.SavingsDaiABI))
+			asset, err = abi.JSON(strings.NewReader(optimismContracts.SavingsABI))
 			if err != nil {
 				log.Fatalf("Failed to parse savings ABI: %v", err)
 			}

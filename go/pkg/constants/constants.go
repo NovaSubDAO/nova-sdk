@@ -29,11 +29,10 @@ var StablecoinDetails = map[int64]map[Stablecoin]StablecoinData{
 }
 
 type ConfigData struct {
-	VaultAddress   string
-	VaultDecimals  int64
-	AdapterAddress string
-	Savings        string
-	LiquidityPool  string
+	VaultAddress  string
+	VaultDecimals int64
+	Savings       string
+	LiquidityPool string
 }
 
 var ConfigDetails = map[int64]ConfigData{

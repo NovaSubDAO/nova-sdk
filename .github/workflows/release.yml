@@ -1,12 +1,7 @@
 name: Create Release and Tag
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version for the release"
-        required: true
-        default: "0.1.0"
+  workflow_dispatch: # Manual trigger
 
 jobs:
   release:
@@ -16,6 +11,13 @@ jobs:
       - name: Checkout the repository
         uses: actions/checkout@v3
 
+      - name: Read version from config.json
+        id: read_version
+        run: |
+          VERSION=$(jq -r '.version' config.json)
+          echo "Version is $VERSION"
+          echo "::set-output name=VERSION::$VERSION"
+
       - name: Set up Git
         run: |
           git config user.name "${{ github.actor }}"
@@ -24,19 +26,21 @@ jobs:
       - name: Create tag
         id: tag_step
         run: |
-          git tag -a v${{ github.event.inputs.version }} -m "Release version v${{ github.event.inputs.version }}"
-          git push origin v${{ github.event.inputs.version }}
+          git tag -a v${{ steps.read_version.outputs.VERSION }} -m "Release version v${{ steps.read_version.outputs.VERSION }}"
+          git push --tags
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
         with:
-          tag_name: v${{ github.event.inputs.version }}
-          release_name: v${{ github.event.inputs.version }}
+          tag_name: v${{ steps.read_version.outputs.VERSION }}
+          release_name: v${{ steps.read_version.outputs.VERSION }}
           draft: false
           prerelease: false
-          body: "Release of nova-sdk version v${{ github.event.inputs.version }}"
+          body: "Release of nova-sdk version v${{ steps.read_version.outputs.VERSION }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Go to module directory
+      - name: Go to module directory and tidy up Go modules
         run: |
           cd go
           go mod tidy

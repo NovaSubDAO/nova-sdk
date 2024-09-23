@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://novasubdao.github.io/nova-sdk/</loc>
+         <lastmod>2024-09-23</lastmod>
+    </url>
+    <url>
+         <loc>https://novasubdao.github.io/nova-sdk/bridging_sdai/</loc>
+         <lastmod>2024-09-23</lastmod>
+    </url>
+    <url>
+         <loc>https://novasubdao.github.io/nova-sdk/sdk_documentation/</loc>
+         <lastmod>2024-09-23</lastmod>
+    </url>
+    <url>
+         <loc>https://novasubdao.github.io/nova-sdk/the_nova_contract/</loc>
+         <lastmod>2024-09-23</lastmod>
+    </url>
+    <url>
+         <loc>https://novasubdao.github.io/nova-sdk/what_is_sdai/</loc>
+         <lastmod>2024-09-23</lastmod>
+    </url>
+</urlset>

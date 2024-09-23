@@ -1,0 +1,30 @@
+name: Create a Tag
+
+on:
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3
+
+      - name: Read version from config.json
+        id: read_version
+        run: |
+          VERSION=$(jq -r '.version' config.json)
+          echo "Version is $VERSION"
+          echo "::set-output name=VERSION::$VERSION"
+
+      - name: Set up Git
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Create tag
+        id: tag_step
+        run: |
+          git tag -a v${{ steps.read_version.outputs.VERSION }} -m "Release version v${{ steps.read_version.outputs.VERSION }}"
+          git push --tags

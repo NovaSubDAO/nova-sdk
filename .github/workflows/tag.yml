@@ -28,3 +28,14 @@ jobs:
         run: |
           git tag -a v${{ steps.read_version.outputs.VERSION }} -m "Release version v${{ steps.read_version.outputs.VERSION }}"
           git push --tags
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        with:
+          tag_name: v${{ steps.read_version.outputs.VERSION }}
+          release_name: v${{ steps.read_version.outputs.VERSION }}
+          draft: false
+          prerelease: false
+          body: "Release of pkg-go-dev-demo version v${{ steps.read_version.outputs.VERSION }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Automatically provided by GitHub
